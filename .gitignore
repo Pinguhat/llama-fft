@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual environment
+venv/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Models / cache
+models/
+.cache/
