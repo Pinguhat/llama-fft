@@ -1,19 +1,22 @@
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoTokenizer, AutoModelForCausalLM
 
-MODEL_NAME = "meta-llama/Meta-Llama-3.1-8B"
+MODEL_NAME = "/home/lukas/models/Llama-2-7b-hf"
 
 def main():
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, local_files_only=True)
     model = AutoModelForCausalLM.from_pretrained(
         MODEL_NAME,
-        device_map="auto"
+        device_map="cpu",
+        torch_dtype="float16",
+        low_cpu_mem_usage=True,
+        local_files_only=True,
     )
+    model.eval()
 
-    text = "FFT-based acceleration for neural networks is"
-    inputs = tokenizer(text, return_tensors="pt").to(model.device)
-
+    text = "FFT based acceleration for neural networks is"
+    inputs = tokenizer(text, return_tensors="pt")
     outputs = model(**inputs)
-    print("Forward pass successful. Logits shape:", outputs.logits.shape)
+    print("Logits shape:", outputs.logits.shape)
 
 if __name__ == "__main__":
     main()
