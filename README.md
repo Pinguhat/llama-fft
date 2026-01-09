@@ -2,10 +2,10 @@
 
 This project explores the use of FFT-based block-circulant linear layers
 to reduce computational complexity and memory usage in Large Language Models,
-specifically Llama 3.1.
+specifically Llama 2.
 
 ## Goals
-- Analyze linear layers in Llama 3.1
+- Analyze linear layers in Llama 2
 - Replace dense matrix multiplications with block-circulant structures
 - Use FFT to accelerate matrix-vector multiplication
 - Evaluate theoretical and practical savings
