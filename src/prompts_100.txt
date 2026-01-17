@@ -1,0 +1,100 @@
+FFT basierte Beschleunigung fuer neuronale Netze ist
+In diesem Paper untersuchen wir Block-Circulant Matrices fuer LLMs.
+Die Genauigkeit wird ueber Logits-Distanzen und Token-Agreement bewertet.
+Explain what a circulant matrix is in simple terms.
+Explain why FFT can speed up matrix-vector products.
+Write one sentence about model compression.
+Write one sentence about runtime speedup.
+Write one sentence about numerical stability.
+Complete the sentence: The main tradeoff is
+Complete the sentence: The approximation error is
+Complete the sentence: A good evaluation metric is
+Write a short definition of perplexity.
+Write a short definition of attention in transformers.
+Write a short definition of an MLP in a transformer.
+What happens if we patch only one layer?
+What happens if we patch many layers?
+Explain why weight projection can change outputs.
+Explain why small logit changes can flip argmax.
+List three common evaluation metrics for LLMs.
+Explain teacher-student distillation briefly.
+Explain why calibration data can help.
+The quick brown fox jumps over the lazy dog.
+Pack my box with five dozen liquor jugs.
+Sphinx of black quartz, judge my vow.
+Generate one sentence about embedded systems.
+Generate one sentence about signal processing.
+Generate one sentence about FPGA development.
+Generate one sentence about HLS.
+Generate one sentence about verification.
+Generate one sentence about optimization.
+Generate one sentence about benchmarking.
+Generate one sentence about reproducibility.
+Write a short test sentence about mathematics.
+Write a short test sentence about physics.
+Write a short test sentence about software engineering.
+Write a short test sentence about hardware design.
+Write a short paragraph about structured linear layers.
+Write a short paragraph about tradeoffs in model deployment.
+Write a short paragraph about energy cost of inference.
+Write a short paragraph about edge AI constraints.
+Summarize the idea of block-circulant weights.
+Summarize the idea of FFT-based multiplication.
+Summarize the evaluation setup in two sentences.
+Give a short example of a prompt for testing.
+Give another short example prompt for testing.
+In 2026, efficient inference is important because
+Describe how to compute L2 distance between logits.
+Describe how to compute KL divergence between softmax outputs.
+Describe how to compute token agreement across a sequence.
+Write a short sentence about tokenization.
+Write a short sentence about vocabulary size.
+Write a short sentence about logits shape.
+Write a short sentence about sequence length.
+Write a short sentence about batch size.
+Write a short sentence about transformer layers.
+Write a short sentence about gating in MLP.
+Write a short sentence about up projection.
+Write a short sentence about down projection.
+Write a short sentence about speed vs quality.
+Write a short sentence about research motivation.
+Write a short sentence about deployment constraints.
+Write a short sentence about energy efficiency.
+Write a short sentence about structured matrices.
+Write a short sentence about FFT overhead.
+Write a short sentence about end-to-end latency.
+Write a short sentence about throughput.
+Write a short sentence about memory bandwidth.
+Write a short sentence about computational complexity.
+Write a short sentence about approximation quality.
+Explain the concept of block diagonal matrices.
+Explain the concept of sparsity in neural networks.
+Describe the relationship between FFT size and accuracy.
+Describe the relationship between compression ratio and performance.
+Complete the sentence: The FFT algorithm reduces complexity from
+Complete the sentence: Circulant matrices are defined by
+Complete the sentence: The main advantage of structured matrices is
+What is the difference between exact and approximate computation?
+What is the difference between training and inference optimization?
+What is the difference between systolic arrays and FFT methods?
+Generate one sentence about quantization techniques.
+Generate one sentence about pruning neural networks.
+Generate one sentence about knowledge distillation.
+Generate one sentence about hardware accelerators.
+Generate one sentence about tensor decomposition.
+Write a short test sentence about algorithm complexity.
+Write a short test sentence about numerical precision.
+Write a short test sentence about parallel computing.
+Write a short test sentence about distributed systems.
+Summarize why matrix multiplication dominates inference time.
+Summarize why structured weights reduce memory access.
+Summarize the tradeoff between accuracy and speed in two sentences.
+List three hardware considerations for neural network deployment.
+List three software optimizations for transformer inference.
+Explain why FLOP count alone is not sufficient for predicting speedup.
+Explain why cache locality matters for matrix operations.
+Describe how FFT exploits the structure of circulant matrices.
+Describe how token-level metrics differ from logit-level metrics.
+In practice, model compression is essential for
+The connection between FFT and convolution is
+Artificial intelligence and machine learning continue to advance rapidly.

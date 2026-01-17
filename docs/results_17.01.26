@@ -1,0 +1,82 @@
+16.01.2026
+
+------------------------------------------------------------------------------------
+
+patch_llama_fft.py 
+
+Loading Llama-2-7b from local path: 
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:00<00:00, 22.51it/s]
+Model has 32 transformer layers.
+Patching the first 1 layer(s).
+  Patching layer 0 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+      Using circulant convention: diag_inv
+    Replacing up_proj: in_features=4096, out_features=11008
+      Using circulant convention: diag_inv
+    Replacing down_proj: in_features=11008, out_features=4096
+      Using circulant convention: diag_inv
+Running a small forward pass to check shapes...
+Forward pass completed.
+Logits shape: torch.Size([1, 8, 32000])
+
+------------------------------------------------------------------------------------
+
+compare_original_and_fft.py
+
+Loading original model...
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:00<00:00, 41.99it/s]
+Loading FFT-patched model...
+Loading checkpoint shards: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:00<00:00, 43.43it/s]
+Model has 32 transformer layers.
+Patching the first 1 layer(s).
+  Patching layer 0 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+      Using circulant convention: diag_inv
+    Replacing up_proj: in_features=4096, out_features=11008
+      Using circulant convention: diag_inv
+    Replacing down_proj: in_features=11008, out_features=4096
+      Using circulant convention: diag_inv
+Texts tested: 3
+L2 mean/std: 3.8938801288604736 0.6988322138786316
+KL mean/std: 1.7973989248275757 0.8543229103088379
+Cos mean/std: 0.9383716583251953 0.0042932596988976
+
+------------------------------------------------------------------------------------
+
+compare_original_and_fft_tokens.py 
+
+Loading original model...
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:00<00:00, 47.94it/s]
+
+Loading FFT-patched model...
+Loading checkpoint shards: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:00<00:00, 69.34it/s]
+Model has 32 transformer layers.
+Patching the first 1 layer(s).
+  Patching layer 0 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+      Using circulant convention: diag_inv
+    Replacing up_proj: in_features=4096, out_features=11008
+      Using circulant convention: diag_inv
+    Replacing down_proj: in_features=11008, out_features=4096
+      Using circulant convention: diag_inv
+
+Text: 'FFT basierte Beschleunigung fuer neuronale Netze ist'
+  Same tokens: 2 / 16
+  Next-token ids: 1011 vs 1011
+  Next-token: 'ein' vs 'ein'
+
+Text: 'In diesem Paper untersuchen wir Block-Circulant Matrices fuer LLMs.'
+  Same tokens: 6 / 22
+  Next-token ids: 13 vs 13
+  Next-token: '\n' vs '\n'
+
+Text: 'Die Genauigkeit wird ueber Logits-Distanzen und Token-Agreement bewertet.'
+  Same tokens: 8 / 25
+  Next-token ids: 13 vs 13
+  Next-token: '\n' vs '\n'
+
+Overall token agreement: 16 / 63
+Overall next-token agreement: 3 / 3

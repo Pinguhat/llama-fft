@@ -1,6 +1,9 @@
 import torch
 import torch.nn as nn
+import os
+from typing import Dict
 from transformers import AutoModelForCausalLM
+from fft_utils import circulant_matvec_fft
 
 # Lokaler Pfad zu deinem Llama-2-7b-hf Modell
 MODEL_PATH = "/home/lukas/models/Llama-2-7b-hf"
@@ -10,46 +13,41 @@ BLOCK_SIZE = 256
 # Wie viele Transformer-Layer patchen wir (erstmal nur 1 fuer Demo)
 NUM_LAYERS_TO_PATCH = 1
 
-
-def circulant_matvec_fft(c: torch.Tensor, x: torch.Tensor) -> torch.Tensor:
+def _detect_best_convention_for_layer(W: torch.Tensor, block_size: int, *, num_probes: int = 3) -> str:
     """
-    Multiply a circulant matrix C (given by its first column c)
-    with a vector x using FFT.
+    Heuristic sanity-check: pick the convention that best matches dense matvec.
+    Tests a single top-left block with a few random probe vectors.
 
-    c: shape (n,)
-    x: shape (n,)
-    returns y: shape (n,), where y = C x
-
-    Uses float32 for FFT internally for stability and converts back.
+    Returns: "diag" or "diag_inv".
     """
-    assert c.dim() == 1
-    assert x.dim() == 1
-    n = c.shape[0]
-    assert x.shape[0] == n
+    B = block_size
+    block = W[:B, :B].to(torch.float32)
 
-    orig_dtype = x.dtype
+    torch.manual_seed(0)
+    xs = [torch.randn(B, dtype=torch.float32) for _ in range(num_probes)]
 
-    c32 = c.to(torch.float32)
-    x32 = x.to(torch.float32)
+    def score(convention: str) -> float:
+        c = dense_block_to_circulant_column(block, convention=convention).to(torch.float32)
+        err = 0.0
+        for x in xs:
+            y_dense = block @ x
+            y_circ = circulant_matvec_fft(c, x)
+            err += (y_dense - y_circ).pow(2).mean().item()
+        return err / float(num_probes)
 
-    fft_c = torch.fft.rfft(c32)
-    fft_x = torch.fft.rfft(x32)
+    e_diag = score("diag")
+    e_inv = score("diag_inv")
+    return "diag" if e_diag <= e_inv else "diag_inv"
 
-    fft_y = fft_c * fft_x
-
-    y32 = torch.fft.irfft(fft_y, n=n)
-
-    return y32.to(orig_dtype)
-
-
-def dense_block_to_circulant_column(W_block: torch.Tensor) -> torch.Tensor:
+def dense_block_to_circulant_column(W_block: torch.Tensor, *, convention: str = "diag") -> torch.Tensor:
     """
-    Approximate a dense BxB weight block W_block by a circulant matrix C
-    and return the first column c of C.
+    Least-squares (Frobenius) projection of a dense block onto circulant matrices.
 
-    Simple heuristic:
+    Convention "diag" (default):
         c[k] = mean_i W_block[i, (i + k) % B]
-    That means: c[k] is the mean of the cyclic diagonal with offset k.
+
+    Convention "diag_inv" (rarely needed):
+        c[k] = mean_i W_block[(i + k) % B, i]
     """
     assert W_block.dim() == 2
     B0, B1 = W_block.shape
@@ -58,13 +56,20 @@ def dense_block_to_circulant_column(W_block: torch.Tensor) -> torch.Tensor:
     device = W_block.device
     dtype = W_block.dtype
 
+    if convention not in ("diag", "diag_inv"):
+        raise ValueError(f"Unknown convention: {convention}")
+
     c = torch.zeros(B, device=device, dtype=dtype)
     idx = torch.arange(B, device=device)
 
     for k in range(B):
-        cols = (idx + k) % B
-        diag_vals = W_block[idx, cols]
-        c[k] = diag_vals.mean()
+        if convention == "diag":
+            cols = (idx + k) % B
+            vals = W_block[idx, cols]
+        else:
+            rows = (idx + k) % B
+            vals = W_block[rows, idx]
+        c[k] = vals.mean()
 
     return c
 
@@ -136,11 +141,14 @@ class BlockCirculantLinear(nn.Module):
             # Start from (out_f, in_f) = (out_blocks * B, in_blocks * B)
             W_blocks = W.view(out_blocks, B, in_blocks, B)  # (out_blocks, B, in_blocks, B)
             W_blocks = W_blocks.permute(0, 2, 1, 3)         # (out_blocks, in_blocks, B, B)
+            convention = _detect_best_convention_for_layer(W, block_size)
+            print(f"      Using circulant convention: {convention}")
+
 
             for j in range(out_blocks):
                 for i in range(in_blocks):
                     block = W_blocks[j, i]   # (B, B)
-                    c_ji = dense_block_to_circulant_column(block)
+                    c_ji = dense_block_to_circulant_column(block, convention=convention)
                     layer.c.data[j, i].copy_(c_ji)
 
             if layer.bias is not None and linear.bias is not None:
@@ -205,9 +213,77 @@ class BlockCirculantLinear(nn.Module):
 
         return y
 
+def _get_submodule_by_name(model: nn.Module, name: str) -> nn.Module:
+    cur = model
+    if name == "":
+        return cur
+    for part in name.split("."):
+        cur = getattr(cur, part)
+    return cur
 
 
-def patch_mlp_with_block_circulant(model: AutoModelForCausalLM) -> None:
+def save_bc_params(model: nn.Module, path: str) -> None:
+    """
+    Save only BlockCirculantLinear parameters (c and bias) to a compact checkpoint.
+    """
+    bc_state: Dict[str, torch.Tensor] = {}
+    for module_name, module in model.named_modules():
+        if isinstance(module, BlockCirculantLinear):
+            bc_state[f"{module_name}.c"] = module.c.detach().cpu()
+            if module.bias is not None:
+                bc_state[f"{module_name}.bias"] = module.bias.detach().cpu()
+
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    torch.save(bc_state, path)
+    print(f"Saved BC params: {len(bc_state)} tensors -> {path}")
+
+
+def load_bc_params(model: nn.Module, path: str, *, strict_shapes: bool = True) -> None:
+    """
+    Load BlockCirculantLinear parameters (c and bias) from checkpoint created by save_bc_params().
+    """
+    state: Dict[str, torch.Tensor] = torch.load(path, map_location="cpu")
+    loaded = 0
+    skipped = 0
+
+    for full_name, tensor in state.items():
+        if not (full_name.endswith(".c") or full_name.endswith(".bias")):
+            skipped += 1
+            continue
+
+        module_name, param_name = full_name.rsplit(".", 1)
+        try:
+            module = _get_submodule_by_name(model, module_name)
+        except AttributeError:
+            skipped += 1
+            continue
+
+        if not hasattr(module, param_name):
+            skipped += 1
+            continue
+
+        param = getattr(module, param_name)
+        if not isinstance(param, torch.Tensor):
+            skipped += 1
+            continue
+
+        if strict_shapes and param.shape != tensor.shape:
+            skipped += 1
+            continue
+
+        with torch.no_grad():
+            param.copy_(tensor.to(param.device, dtype=param.dtype))
+        loaded += 1
+
+    print(f"Loaded BC params from {path}: loaded={loaded}, skipped={skipped}")
+
+
+def patch_mlp_with_block_circulant(
+    model: AutoModelForCausalLM,
+    *,
+    num_layers_to_patch: int = NUM_LAYERS_TO_PATCH,
+    block_size: int = BLOCK_SIZE
+) -> None:
     """
     Replace MLP linear layers in the first NUM_LAYERS_TO_PATCH transformer
     layers with BlockCirculantLinear layers that approximate the original
@@ -215,9 +291,9 @@ def patch_mlp_with_block_circulant(model: AutoModelForCausalLM) -> None:
     """
     n_layers = model.config.num_hidden_layers
     print(f"Model has {n_layers} transformer layers.")
-    print(f"Patching the first {NUM_LAYERS_TO_PATCH} layer(s).")
+    print(f"Patching the first {num_layers_to_patch} layer(s).")
 
-    for layer_idx in range(NUM_LAYERS_TO_PATCH):
+    for layer_idx in range(num_layers_to_patch):
         mlp = model.model.layers[layer_idx].mlp
         print(f"  Patching layer {layer_idx} MLP...")
 
@@ -232,13 +308,11 @@ def patch_mlp_with_block_circulant(model: AutoModelForCausalLM) -> None:
                 f"in_features={old_layer.in_features}, out_features={old_layer.out_features}"
             )
 
-            # Initialize new block-circulant layer from original dense weights
             new_layer = BlockCirculantLinear.from_linear(
                 old_layer,
-                block_size=BLOCK_SIZE,
+                block_size=block_size,
             )
             setattr(mlp, name, new_layer)
-
 
 def main():
     print(f"Loading Llama-2-7b from local path: {MODEL_PATH}")
