@@ -74,7 +74,7 @@ def main():
     print("Loading teacher (original) model...")
     teacher = AutoModelForCausalLM.from_pretrained(
         MODEL_PATH,
-        device_map="cpu",
+        device_map="auto",
         torch_dtype=torch.float16,
         low_cpu_mem_usage=True,
         local_files_only=True,
@@ -84,7 +84,7 @@ def main():
     print("Loading student (will be patched) model...")
     student = AutoModelForCausalLM.from_pretrained(
         MODEL_PATH,
-        device_map="cpu",
+        device_map="auto",
         torch_dtype=torch.float16,
         low_cpu_mem_usage=True,
         local_files_only=True,
