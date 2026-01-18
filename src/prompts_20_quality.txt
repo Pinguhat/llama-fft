@@ -1,0 +1,20 @@
+Complete: FFT helps because
+Complete: Block-circulant weights save compute by
+Continue: The tradeoff is between
+Continue: The approximation error comes from
+Continue: A least-squares projection tries to
+Continue: KL divergence measures
+Continue: Cosine similarity compares
+Continue: Small logit changes can
+Continue: The student model should
+Continue: The teacher model provides
+Continue: With block size 256,
+Continue: With block size 64,
+One word only: between
+One word only: because
+Vervollstaendige: FFT ist gut, weil
+Vervollstaendige: Block-Circulant spart, indem
+Führe fort: Der Nachteil ist, dass
+Führe fort: Eine gute Metrik ist
+Ein Wort: zwischen
+Ein Wort: weil
