@@ -6,7 +6,8 @@ from transformers import AutoModelForCausalLM
 from fft_utils import circulant_matvec_fft
 
 # Lokaler Pfad zu deinem Llama-2-7b-hf Modell
-MODEL_PATH = "/home/lukas/models/Llama-2-7b-hf"
+# Use a raw string (or escaped slashes) to avoid Python interpreting backslashes as escapes
+MODEL_PATH = r"C:\Users\Lukas\Documents\0-UNI\Seminar\Llama2"
 
 # Blockgroesse fuer block-circulant Approximation
 BLOCK_SIZE = 256
@@ -21,13 +22,16 @@ def _detect_best_convention_for_layer(W: torch.Tensor, block_size: int, *, num_p
     Returns: "diag" or "diag_inv".
     """
     B = block_size
-    block = W[:B, :B].to(torch.float32)
+
+    # keep device of W (could be cuda or cpu), but force float32 for stability
+    block = W[:B, :B].detach().to(dtype=torch.float32)
+    dev = block.device
 
     torch.manual_seed(0)
-    xs = [torch.randn(B, dtype=torch.float32) for _ in range(num_probes)]
+    xs = [torch.randn(B, device=dev, dtype=torch.float32) for _ in range(num_probes)]
 
     def score(convention: str) -> float:
-        c = dense_block_to_circulant_column(block, convention=convention).to(torch.float32)
+        c = dense_block_to_circulant_column(block, convention=convention).to(dtype=torch.float32)
         err = 0.0
         for x in xs:
             y_dense = block @ x
@@ -38,6 +42,7 @@ def _detect_best_convention_for_layer(W: torch.Tensor, block_size: int, *, num_p
     e_diag = score("diag")
     e_inv = score("diag_inv")
     return "diag" if e_diag <= e_inv else "diag_inv"
+
 
 def dense_block_to_circulant_column(W_block: torch.Tensor, *, convention: str = "diag") -> torch.Tensor:
     """
@@ -130,7 +135,8 @@ class BlockCirculantLinear(nn.Module):
             block_size=block_size,
             bias=(linear.bias is not None),
         )
-
+        layer = layer.to(linear.weight.device) 
+        
         with torch.no_grad():
             W = linear.weight.data.clone()  # (out_f, in_f)
             B = block_size

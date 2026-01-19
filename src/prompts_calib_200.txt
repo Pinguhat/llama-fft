@@ -1,0 +1,204 @@
+Complete the sentence: The purpose of calibration is to
+Complete the sentence: A good approximation should preserve
+Complete the sentence: The next token distribution changes when
+Complete the sentence: The main benefit of structured weights is
+Complete the sentence: The main drawback of compression is
+Complete the sentence: FFT-based multiplication is efficient because
+Complete the sentence: Block-circulant matrices are useful since
+Complete the sentence: A simple sanity check is to compare
+Complete the sentence: A practical metric for similarity is
+Complete the sentence: When top-1 differs but top-5 matches, it means
+Complete the sentence: In transformers, MLP layers contribute by
+Complete the sentence: Attention and MLP differ because
+Complete the sentence: A small logit shift can cause
+Complete the sentence: The teacher model provides targets by
+Complete the sentence: The student model is optimized to minimize
+Complete the sentence: KL divergence is suitable here because
+Complete the sentence: Cosine similarity is meaningful because
+Complete the sentence: Mean squared error on logits measures
+Complete the sentence: A stable approximation should keep
+Complete the sentence: A robust evaluation includes
+Continue: The approximation error can accumulate because
+Continue: The output distribution is sensitive when
+Continue: Calibration improves quality by adjusting
+Continue: The FFT version differs from the dense version because
+Continue: If a layer is patched, downstream activations can
+Continue: A common symptom of drift is that
+Continue: One way to detect drift is to measure
+Continue: If the logits are rescaled, then
+Continue: If the logits are shifted, then
+Continue: When comparing two models, it is useful to look at
+Continue: The top-k overlap tells us
+Continue: The next token match rate indicates
+Continue: A good calibration dataset should contain
+Continue: Diverse prompts help because
+Continue: Long prompts are harder because
+Continue: Short prompts can be misleading because
+Continue: Inference cost is dominated by
+Continue: Matrix multiplication cost scales with
+Continue: Structured matrices reduce cost by
+Continue: FFT-based methods trade accuracy for
+Continue: A block size parameter affects
+Continue: Larger blocks tend to
+Continue: Smaller blocks tend to
+Continue: The projection method aims to
+Continue: The least-squares objective encourages
+Continue: The choice of learning rate matters because
+Continue: Too high learning rate can
+Continue: Too low learning rate can
+Continue: More steps usually
+Continue: Early stopping is helpful when
+Continue: Overfitting can happen if
+Continue: Generalization can improve if
+Finish this thought: The most important evaluation number is
+Finish this thought: The most fragile metric is
+Finish this thought: The easiest metric to satisfy is
+Finish this thought: The hardest metric to satisfy is
+Finish this thought: Distribution matching differs from token matching because
+Finish this thought: Matching logits exactly is not required if
+Finish this thought: The model can keep quality even if
+Finish this thought: A small KL does not guarantee
+Finish this thought: A high cosine does not guarantee
+Finish this thought: A low L2 can still hide
+Finish this thought: The best outcome after calibration is
+Finish this thought: The worst case after calibration is
+Finish this thought: The next token can change when
+Finish this thought: Small numerical changes can lead to
+Finish this thought: The goal is to minimize quality loss while
+Finish this thought: The objective can be improved by
+Explain in one sentence what KL divergence measures for next-token distributions.
+Explain in one sentence what cosine similarity indicates for two logit vectors.
+Explain in one sentence why L2 distance on logits can be misleading.
+Explain in one sentence why top-k overlap is a robust metric.
+Explain in one sentence why calibration needs diverse prompts.
+Explain in one sentence why errors in early layers can matter more.
+Explain in one sentence what a block-circulant matrix is.
+Explain in one sentence why FFT helps with circulant multiplication.
+Explain in one sentence what "teacher-student" calibration means.
+Explain in one sentence why a patched model can drift in generation.
+Write a short definition: block-circulant matrix
+Write a short definition: calibration
+Write a short definition: logit
+Write a short definition: KL divergence
+Write a short definition: cosine similarity
+Write a short definition: top-k overlap
+Write a short definition: approximation error
+Write a short definition: teacher model
+Write a short definition: student model
+Write a short definition: structured sparsity
+Answer briefly: what does it mean if top-1 matches but top-5 overlap is low
+Answer briefly: what does it mean if top-1 differs but top-5 overlap is high
+Answer briefly: why can a small KL still produce different argmax
+Answer briefly: why is next-token agreement important
+Answer briefly: why is distribution agreement important
+Answer briefly: why does scaling logits affect softmax confidence
+Answer briefly: why do residual connections propagate differences
+Answer briefly: why does a single patched layer affect later layers
+Answer briefly: why is evaluation on multiple prompts necessary
+Answer briefly: why should test prompts differ from calibration prompts
+Complete: If we increase the number of calibration prompts, we expect
+Complete: If we reduce the learning rate, we expect
+Complete: If we increase the number of steps, we expect
+Complete: If we patch more layers, we expect
+Complete: If we patch only one layer, we expect
+Complete: If the block size is 256, we expect
+Complete: If the block size is 64, we expect
+Complete: If the block size is 32, we expect
+Complete: If the model is quantized, we expect
+Complete: If the model is finetuned, we expect
+Continue: In a transformer MLP, the gate projection usually
+Continue: In a transformer MLP, the up projection usually
+Continue: In a transformer MLP, the down projection usually
+Continue: The hidden dimension changes because
+Continue: The activation function matters because
+Continue: The gating mechanism matters because
+Continue: Block structure reduces parameters by
+Continue: FFT introduces overhead due to
+Continue: The overhead is amortized when
+Continue: The speedup depends on
+Continue: Memory bandwidth matters because
+Continue: Cache behavior matters because
+Continue: CPU performance differs from GPU performance because
+Continue: A fair benchmark should report
+Continue: A fair benchmark should control for
+Continue: A fair benchmark should include
+Finish: The calibration loss decreases when
+Finish: The calibration loss increases when
+Finish: The calibration becomes unstable when
+Finish: The calibration converges faster when
+Finish: The calibration converges slower when
+Finish: The calibrated model is better when
+Finish: The calibrated model is worse when
+Finish: The calibration objective matches evaluation when
+Finish: The calibration objective differs from evaluation when
+Finish: The most informative prompt types are
+Generate a continuation: The method replaces dense matrices with
+Generate a continuation: The model quality is evaluated by
+Generate a continuation: A key hyperparameter is
+Generate a continuation: The main engineering challenge is
+Generate a continuation: The main theoretical idea is
+Generate a continuation: The main experimental result is
+Generate a continuation: The primary limitation is
+Generate a continuation: The next step is to
+Generate a continuation: The trade-off can be summarized as
+Generate a continuation: The reason to use FFT is that
+Continue the paragraph: A block-circulant approximation can be applied to
+Continue the paragraph: When applying structured matrices to pretrained models,
+Continue the paragraph: The calibration procedure aims to
+Continue the paragraph: During evaluation, we compare
+Continue the paragraph: One limitation is that
+Continue the paragraph: One advantage is that
+Continue the paragraph: A surprising observation is that
+Continue the paragraph: A useful ablation is to
+Continue the paragraph: A common baseline is to
+Continue the paragraph: A realistic deployment constraint is
+Fill in one word only (no punctuation): accuracy
+Fill in one word only (no punctuation): speed
+Fill in one word only (no punctuation): memory
+Fill in one word only (no punctuation): stability
+Fill in one word only (no punctuation): divergence
+Fill in one word only (no punctuation): similarity
+Fill in one word only (no punctuation): calibration
+Fill in one word only (no punctuation): approximation
+Fill in one word only (no punctuation): overhead
+Fill in one word only (no punctuation): tradeoff
+Vervollstaendige den Satz: Die Kalibrierung soll erreichen, dass
+Vervollstaendige den Satz: Ein Vorteil der Block-Circulant Struktur ist, dass
+Vervollstaendige den Satz: Ein Nachteil der Approximation ist, dass
+Vervollstaendige den Satz: Kleine Logit-Verschiebungen koennen dazu fuehren, dass
+Vervollstaendige den Satz: Eine sinnvolle Auswertung betrachtet
+Vervollstaendige den Satz: Top-k ist robuster als Top-1, weil
+Vervollstaendige den Satz: KL ist hier geeignet, weil
+Vervollstaendige den Satz: Cosine Similarity hilft, weil
+Vervollstaendige den Satz: L2-Distanz auf Logits kann irrefuehrend sein, weil
+Vervollstaendige den Satz: Ein gepatchtes Modell driftet, wenn
+Fuehre fort: Die Fehler in fruehen Layern sind kritisch, weil
+Fuehre fort: Ein guter Test nutzt Prompts, die
+Fuehre fort: Eine zu hohe Lernrate kann dazu fuehren, dass
+Fuehre fort: Eine zu niedrige Lernrate kann dazu fuehren, dass
+Fuehre fort: Mehr Schritte helfen, wenn
+Fuehre fort: Weniger Schritte reichen, wenn
+Fuehre fort: Die Blockgroesse beeinflusst, wie
+Fuehre fort: Die FFT bringt Speedup, wenn
+Fuehre fort: Die Qualitaet bleibt hoch, wenn
+Fuehre fort: Ein sinnvolles Ziel ist, dass
+Erklaere kurz: Was misst die KL-Divergenz beim letzten Token?
+Erklaere kurz: Was bedeutet Top-1 Agreement?
+Erklaere kurz: Warum kann sich Argmax trotz kleiner KL aendern?
+Erklaere kurz: Warum sind Top-k Metriken robust?
+Erklaere kurz: Warum braucht man getrennte Kalibrier- und Test-Prompts?
+Gib ein Beispiel: Ein Prompt, der fuer Kalibrierung gut ist, ist
+Gib ein Beispiel: Ein Prompt, der fuer Tests gut ist, ist
+Gib ein Beispiel: Eine typische Drift zeigt sich durch
+Gib ein Beispiel: Eine typische Verbesserung zeigt sich durch
+Gib ein Beispiel: Eine typische Metrik ist
+Formuliere um: Die Kalibrierung reduziert den Qualitaetsverlust, indem
+Formuliere um: Die Approximation spart Rechenzeit, indem
+Formuliere um: Das Modell wird bewertet anhand von
+Formuliere um: Ein Layer wird ersetzt durch
+Formuliere um: Ein schneller Matmul nutzt
+Formuliere um: Ein gueltiger Vergleich nutzt
+Formuliere um: Ein gutes Ergebnis zeigt
+Formuliere um: Ein schlechtes Ergebnis zeigt
+Formuliere um: Ein fairer Test umfasst
+Formuliere um: Eine robuste Metrik ist

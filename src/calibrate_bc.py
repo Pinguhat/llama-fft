@@ -13,6 +13,15 @@ from patch_llama_fft import (
     BlockCirculantLinear,
     save_bc_params,
 )
+def pick_input_device(m):
+    if hasattr(m, "hf_device_map"):
+        d = m.hf_device_map.get("model.embed_tokens", None)
+        if d is None:
+            d = next(iter(m.hf_device_map.values()))
+        if isinstance(d, int):
+            return torch.device(f"cuda:{d}")
+        return torch.device(str(d))
+    return next(m.parameters()).device
 
 def load_texts(path: Path, limit: int) -> list[str]:
     if not path.exists():
@@ -75,21 +84,55 @@ def main():
     teacher = AutoModelForCausalLM.from_pretrained(
         MODEL_PATH,
         device_map="auto",
-        torch_dtype=torch.float16,
+        dtype=torch.float16,
         low_cpu_mem_usage=True,
         local_files_only=True,
+        max_memory={0: "6GiB", "cpu": "10GiB"},
+        offload_folder="offload_teacher",
+        offload_state_dict=True,
     )
     teacher.eval()
+
+    print("Precomputing teacher last-token cache...")
+    cache_path = Path("teacher_last_cache.pt")
+
+    if cache_path.exists():
+        teacher_last_cache = torch.load(cache_path, map_location="cpu")
+    else:
+        teacher_last_cache = []
+        tdev = pick_input_device(teacher)
+
+        with torch.inference_mode():
+            for t in texts:
+                inputs = tokenizer(t, return_tensors="pt")
+                inputs = {k: v.to(tdev) for k, v in inputs.items()}
+                logits_t = teacher(**inputs).logits
+                teacher_last = logits_t[:, -1, :].to(torch.float32).cpu()
+                teacher_last_cache.append(teacher_last)
+
+        torch.save(teacher_last_cache, cache_path)
+
+    # Teacher muss raus, sonst OOM
+    del teacher
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+    print("Teacher freed.")
+
 
     print("Loading student (will be patched) model...")
     student = AutoModelForCausalLM.from_pretrained(
         MODEL_PATH,
         device_map="auto",
-        torch_dtype=torch.float16,
+        dtype=torch.float16,
         low_cpu_mem_usage=True,
         local_files_only=True,
+        max_memory={0: "6GiB", "cpu": "10GiB"},
+        offload_folder="offload_student",
+        offload_state_dict=True,
     )
     student.eval()
+
     patch_mlp_with_block_circulant(
         student,
         num_layers_to_patch=args.num_layers_to_patch,
@@ -102,21 +145,20 @@ def main():
     print(f"Trainable parameters (BC only): {n_train}")
 
     optim = torch.optim.AdamW(list(iter_trainable_params(student)), lr=args.lr)
+    sdev = pick_input_device(student)
 
     # simple round-robin over prompts
     print("Starting calibration...")
     losses = []
     for step in range(args.steps):
         t = texts[step % len(texts)]
+
         inputs = tokenizer(t, return_tensors="pt")
+        inputs = {k: v.to(sdev) for k, v in inputs.items()}
 
-        with torch.no_grad():
-            logits_t = teacher(**inputs).logits  # (1, seq, vocab)
+        logits_s = student(**inputs).logits
 
-        logits_s = student(**inputs).logits     # (1, seq, vocab)
-
-        # last token only (cheap + stable)
-        teacher_last = logits_t[:, -1, :].to(torch.float32)
+        teacher_last = teacher_last_cache[step % len(texts)].to(sdev)  # CPU -> student device
         student_last = logits_s[:, -1, :].to(torch.float32)
 
         p_teacher = F.softmax(teacher_last, dim=-1)
