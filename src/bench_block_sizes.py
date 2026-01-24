@@ -3,189 +3,21 @@ import os
 import time
 import csv
 import argparse
+import gc
+import inspect
 from dataclasses import dataclass
 from typing import List, Dict, Tuple, Optional
 
 import torch
-import torch.nn as nn
+import torch.nn.functional as F
 import matplotlib.pyplot as plt
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
-
-# -----------------------------
-# Block-circulant layer + patch
-# -----------------------------
-
-def circulant_matvec_fft(c: torch.Tensor, x: torch.Tensor) -> torch.Tensor:
-    # C(c)_{i,j} = c[(i-j) mod B]
-    # Compute y = C x via FFT: y = irfft(rfft(c) * rfft(x))
-    assert c.dim() == 1 and x.dim() == 1
-    n = c.shape[0]
-    assert x.shape[0] == n
-
-    dev = x.device
-    orig_dtype = x.dtype
-
-    # force same device
-    c32 = c.to(device=dev, dtype=torch.float32)
-    x32 = x.to(device=dev, dtype=torch.float32)
-
-    fft_c = torch.fft.rfft(c32)
-    fft_x = torch.fft.rfft(x32)
-    y32 = torch.fft.irfft(fft_c * fft_x, n=n)
-
-    return y32.to(device=dev, dtype=orig_dtype)
-
-
-
-def dense_block_to_circulant_column_loss_aware(W_block: torch.Tensor, eps: float = 1e-12) -> torch.Tensor:
-    """
-    Frobenius-optimal projection onto circulant + optimal scalar alpha.
-    Convention: C[i,j] = c[(i-j) mod B], where c is FIRST column.
-    """
-    assert W_block.dim() == 2
-    B0, B1 = W_block.shape
-    assert B0 == B1
-    B = B0
-
-    device = W_block.device
-    dtype = W_block.dtype
-    idx = torch.arange(B, device=device)
-
-    c = torch.empty(B, device=device, dtype=dtype)
-    diag_sums = torch.empty(B, device=device, dtype=dtype)
-
-    for t in range(B):
-        cols = (idx - t) % B
-        vals = W_block[idx, cols]
-        c[t] = vals.mean()
-        diag_sums[t] = vals.sum()
-
-    # alpha = <W, C> / <C, C>
-    numerator = (c * diag_sums).sum()
-    denom = (B * (c * c).sum()).clamp_min(eps)
-    alpha = numerator / denom
-
-    return (alpha * c).to(dtype)
-
-
-class BlockCirculantLinear(nn.Module):
-    def __init__(self, in_features: int, out_features: int, block_size: int, bias: bool = True):
-        super().__init__()
-        assert in_features % block_size == 0
-        assert out_features % block_size == 0
-        self.in_features = in_features
-        self.out_features = out_features
-        self.block_size = block_size
-        self.in_blocks = in_features // block_size
-        self.out_blocks = out_features // block_size
-
-        self.c = nn.Parameter(torch.randn(self.out_blocks, self.in_blocks, self.block_size) * 0.01)
-        self.bias = nn.Parameter(torch.zeros(out_features)) if bias else None
-
-    @classmethod
-    def from_linear(cls, linear: nn.Linear, block_size: int) -> "BlockCirculantLinear":
-        layer = cls(
-            in_features=linear.in_features,
-            out_features=linear.out_features,
-            block_size=block_size,
-            bias=(linear.bias is not None),
-        )
-        # move new layer to same device + dtype as original linear
-        layer = layer.to(device=linear.weight.device, dtype=linear.weight.dtype)
-
-        with torch.no_grad():
-            W = linear.weight.data.clone()  # (out_f, in_f)
-            B = block_size
-            out_blocks = layer.out_blocks
-            in_blocks = layer.in_blocks
-
-            # (out_blocks, B, in_blocks, B) -> (out_blocks, in_blocks, B, B)
-            W_blocks = W.view(out_blocks, B, in_blocks, B).permute(0, 2, 1, 3)
-
-            for j in range(out_blocks):
-                for i in range(in_blocks):
-                    block = W_blocks[j, i]
-                    c_ji = dense_block_to_circulant_column_loss_aware(block)
-                    layer.c.data[j, i].copy_(c_ji)
-
-            if layer.bias is not None and linear.bias is not None:
-                layer.bias.data.copy_(linear.bias.data)
-
-        return layer
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # Supports (batch, in_features) and (batch, seq, in_features)
-        if x.dim() == 3:
-            bs, sl, in_f = x.shape
-            assert in_f == self.in_features
-            x_flat = x.reshape(bs * sl, in_f)
-            is_3d = True
-        elif x.dim() == 2:
-            x_flat = x
-            bs = x.shape[0]
-            sl = 1
-            is_3d = False
-        else:
-            raise ValueError("Unsupported input dim")
-
-        device = x_flat.device
-        dtype = x_flat.dtype
-
-        x_blocks = x_flat.view(x_flat.shape[0], self.in_blocks, self.block_size)
-        y_blocks = torch.zeros(x_flat.shape[0], self.out_blocks, self.block_size, device=device, dtype=dtype)
-
-        # Not optimized: ok for correctness/plots, not for peak speed
-        for b in range(x_flat.shape[0]):
-            for j in range(self.out_blocks):
-                acc = torch.zeros(self.block_size, device=device, dtype=dtype)
-                for i in range(self.in_blocks):
-                    acc = acc + circulant_matvec_fft(self.c[j, i], x_blocks[b, i])
-                y_blocks[b, j] = acc
-
-        y_flat = y_blocks.view(x_flat.shape[0], self.out_features)
-        if self.bias is not None:
-            y_flat = y_flat + self.bias
-
-        if is_3d:
-            return y_flat.view(bs, sl, self.out_features)
-        return y_flat
-
-
-def patch_mlp_layers(model: AutoModelForCausalLM, block_size: int, num_layers: int = 1) -> None:
-    n_layers = model.config.num_hidden_layers
-    num_layers = min(num_layers, n_layers)
-
-    for layer_idx in range(num_layers):
-        mlp = model.model.layers[layer_idx].mlp
-        for name in ["gate_proj", "up_proj", "down_proj"]:
-            old = getattr(mlp, name)
-            if not isinstance(old, nn.Linear):
-                continue
-            new = BlockCirculantLinear.from_linear(old, block_size=block_size)
-            setattr(mlp, name, new)
-
-
-def maybe_load_calib(model: AutoModelForCausalLM, calib_path: Optional[str]) -> Tuple[int, int]:
-    """
-    Try to load a calibration checkpoint as a state_dict.
-    Returns (missing_count, unexpected_count).
-    """
-    if calib_path is None:
-        return (0, 0)
-    if not os.path.exists(calib_path):
-        return (0, 0)
-
-    ckpt = torch.load(calib_path, map_location="cpu")
-    if not isinstance(ckpt, dict):
-        return (0, 0)
-
-    missing, unexpected = model.load_state_dict(ckpt, strict=False)
-    return (len(missing), len(unexpected))
+import patch_llama_fft as plf
 
 
 # -----------------------------
-# Metrics + benchmarking
+# Metrics
 # -----------------------------
 
 @dataclass
@@ -196,79 +28,33 @@ class Metrics:
 
 
 def softmax_kl(student_logits: torch.Tensor, teacher_logits: torch.Tensor, temperature: float = 1.0) -> torch.Tensor:
-    # KL(teacher || student) over last dimension
-    t = temperature
+    # KL(teacher || student) over vocab dim, returns shape (..., seq)
+    t = float(temperature)
     p = torch.softmax(teacher_logits / t, dim=-1)
     log_q = torch.log_softmax(student_logits / t, dim=-1)
     log_p = torch.log_softmax(teacher_logits / t, dim=-1)
-    kl = (p * (log_p - log_q)).sum(dim=-1)  # (..., seq)
-    return kl
+    return (p * (log_p - log_q)).sum(dim=-1)
 
 
 def read_prompts(path: str, limit: int) -> List[str]:
-    prompts = []
+    out = []
     with open(path, "r", encoding="utf-8") as f:
         for line in f:
             s = line.strip()
-            if not s:
+            if not s or s.startswith("#"):
                 continue
-            prompts.append(s)
-            if len(prompts) >= limit:
+            out.append(s)
+            if len(out) >= limit:
                 break
-    return prompts
+    return out
 
 
-@torch.no_grad()
-def eval_one_model_pair(
-    teacher: AutoModelForCausalLM,
-    student: AutoModelForCausalLM,
-    tokenizer: AutoTokenizer,
-    prompts: List[str],
-    teacher_device: torch.device,
-    student_device: torch.device,
-    max_len: int,
-    temperature: float,
-) -> Metrics:
-    mse_sum = 0.0
-    kl_sum = 0.0
-    agree_sum = 0.0
-    count = 0
-
-    for text in prompts:
-        tok = tokenizer(text, return_tensors="pt", truncation=True, max_length=max_len)
-
-        inputs_t = {k: v.to(teacher_device) for k, v in tok.items()}
-        inputs_s = {k: v.to(student_device) for k, v in tok.items()}
-
-        out_t = teacher(**inputs_t).logits
-        out_s = student(**inputs_s).logits
-
-        # Move teacher logits to student device for comparisons
-        out_t = out_t.to(student_device)
-
-        assert out_t.shape == out_s.shape
-
-        # MSE on logits
-        mse = (out_s - out_t).float().pow(2).mean().item()
-
-        # KL on logits
-        kl = softmax_kl(out_s.float(), out_t.float(), temperature=temperature).mean().item()
-
-        # Token agreement (argmax per position)
-        tok_t = out_t.argmax(dim=-1)
-        tok_s = out_s.argmax(dim=-1)
-        agree = (tok_t == tok_s).float().mean().item()
-
-        mse_sum += mse
-        kl_sum += kl
-        agree_sum += agree
-        count += 1
-
-    return Metrics(
-        logit_mse=mse_sum / max(count, 1),
-        logit_kl=kl_sum / max(count, 1),
-        token_agree=agree_sum / max(count, 1),
-    )
+def pick_dtype(s: str) -> torch.dtype:
+    if s == "float16":
+        return torch.float16
+    if s == "bfloat16":
+        return torch.bfloat16
+    return torch.float32
 
 
 def sync_if_cuda(device: torch.device) -> None:
@@ -276,39 +62,157 @@ def sync_if_cuda(device: torch.device) -> None:
         torch.cuda.synchronize()
 
 
-@torch.no_grad()
+def patch_model_with_repo_patch(model, block_size: int, num_layers: int) -> None:
+    """
+    Call patch_llama_fft.patch_mlp_with_block_circulant with a signature that may differ across versions.
+    """
+    fn = plf.patch_mlp_with_block_circulant
+    sig = inspect.signature(fn)
+    kwargs = {}
+    # Common variants:
+    # patch_mlp_with_block_circulant(model)
+    # patch_mlp_with_block_circulant(model, block_size=..., num_layers_to_patch=...)
+    # patch_mlp_with_block_circulant(model, num_layers_to_patch=..., block_size=...)
+    if "block_size" in sig.parameters:
+        kwargs["block_size"] = block_size
+    if "num_layers_to_patch" in sig.parameters:
+        kwargs["num_layers_to_patch"] = num_layers
+    fn(model, **kwargs) if kwargs else fn(model)
+
+
+def maybe_load_calib(model, calib_path: Optional[str]) -> Tuple[int, int, int]:
+    """
+    Try to load calibration params.
+    Returns (loaded_flag, missing_count, unexpected_count).
+    """
+    if not calib_path:
+        return (0, 0, 0)
+    if not os.path.exists(calib_path):
+        return (0, 0, 0)
+
+    # Prefer repo helper if present
+    if hasattr(plf, "load_bc_params") and callable(getattr(plf, "load_bc_params")):
+        try:
+            plf.load_bc_params(model, calib_path)
+            return (1, 0, 0)
+        except Exception:
+            pass
+
+    # Fallback: load state dict
+    ckpt = torch.load(calib_path, map_location="cpu")
+    missing, unexpected = model.load_state_dict(ckpt, strict=False)
+    return (1, len(missing), len(unexpected))
+
+
+@torch.inference_mode()
+def compute_teacher_cache(
+    model_path: str,
+    tokenizer,
+    prompts: List[str],
+    device: torch.device,
+    dtype: torch.dtype,
+    max_len: int,
+) -> List[torch.Tensor]:
+    """
+    Compute teacher logits once, store on CPU (float16 to save RAM).
+    """
+    teacher = AutoModelForCausalLM.from_pretrained(
+        model_path,
+        torch_dtype=dtype,
+        low_cpu_mem_usage=True,
+        local_files_only=True,
+        device_map=None,
+    ).to(device)
+    teacher.eval()
+
+    cache: List[torch.Tensor] = []
+    for text in prompts:
+        inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=max_len)
+        inputs = {k: v.to(device) for k, v in inputs.items()}
+        logits = teacher(**inputs).logits  # (1, seq, vocab)
+        cache.append(logits.detach().to("cpu"))
+    del teacher
+    gc.collect()
+    if device.type == "cuda":
+        torch.cuda.empty_cache()
+    return cache
+
+
+@torch.inference_mode()
+def eval_student_vs_teacher_cache(
+    student,
+    tokenizer,
+    prompts: List[str],
+    teacher_cache: List[torch.Tensor],
+    device: torch.device,
+    max_len: int,
+    temperature: float,
+) -> Metrics:
+    mse_sum = 0.0
+    kl_sum = 0.0
+    agree_sum = 0.0
+    n = 0
+
+    for text, t_logits_cpu in zip(prompts, teacher_cache):
+        inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=max_len)
+        inputs = {k: v.to(device) for k, v in inputs.items()}
+
+        s_logits = student(**inputs).logits  # (1, seq, vocab)
+        t_logits = t_logits_cpu.to(device)
+
+        # MSE on logits
+        mse = (s_logits.float() - t_logits.float()).pow(2).mean().item()
+
+        # KL on logits
+        kl = softmax_kl(s_logits.float(), t_logits.float(), temperature=temperature).mean().item()
+
+        # Token agreement
+        tok_t = t_logits.argmax(dim=-1)
+        tok_s = s_logits.argmax(dim=-1)
+        agree = (tok_t == tok_s).float().mean().item()
+
+        mse_sum += mse
+        kl_sum += kl
+        agree_sum += agree
+        n += 1
+
+    return Metrics(
+        logit_mse=mse_sum / max(n, 1),
+        logit_kl=kl_sum / max(n, 1),
+        token_agree=agree_sum / max(n, 1),
+    )
+
+
+@torch.inference_mode()
 def measure_forward_time_ms(
-    model: AutoModelForCausalLM,
-    tokenizer: AutoTokenizer,
+    model,
+    tokenizer,
     prompts: List[str],
     device: torch.device,
     max_len: int,
     warmup: int,
     runs: int,
 ) -> Tuple[float, float]:
-    # Returns (avg_ms_per_forward, tokens_per_s) using input token count
     token_counts = []
-    input_batches = []
+    batches = []
     for text in prompts:
         inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=max_len)
         token_counts.append(int(inputs["input_ids"].numel()))
-        input_batches.append({k: v.to(device) for k, v in inputs.items()})
+        batches.append({k: v.to(device) for k, v in inputs.items()})
 
-    # Warmup
     for _ in range(warmup):
-        for inp in input_batches:
+        for inp in batches:
             _ = model(**inp).logits
     sync_if_cuda(device)
 
-    # Timed runs
     t0 = time.perf_counter()
     for _ in range(runs):
-        for inp in input_batches:
+        for inp in batches:
             _ = model(**inp).logits
     sync_if_cuda(device)
     t1 = time.perf_counter()
 
-    total_forwards = runs * len(input_batches)
+    total_forwards = runs * len(batches)
     total_tokens = runs * sum(token_counts)
     total_s = max(t1 - t0, 1e-9)
 
@@ -317,89 +221,80 @@ def measure_forward_time_ms(
     return avg_ms, tok_s
 
 
-# -----------------------------
-# Main
-# -----------------------------
-
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--model_path", type=str, required=True)
     ap.add_argument("--prompts_file", type=str, required=True)
-    ap.add_argument("--limit", type=int, default=50)
-    ap.add_argument("--max_len", type=int, default=128)
+    ap.add_argument("--limit", type=int, default=20)
+    ap.add_argument("--max_len", type=int, default=64)
     ap.add_argument("--num_layers", type=int, default=1)
     ap.add_argument("--block_sizes", type=str, default="64,128,256")
     ap.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")
     ap.add_argument("--dtype", type=str, default="float16", choices=["float16", "float32", "bfloat16"])
-    ap.add_argument("--warmup", type=int, default=2)
-    ap.add_argument("--runs", type=int, default=3)
+    ap.add_argument("--warmup", type=int, default=1)
+    ap.add_argument("--runs", type=int, default=1)
     ap.add_argument("--temperature", type=float, default=1.0)
     ap.add_argument("--calib_dir", type=str, default="")
     ap.add_argument("--csv_out", type=str, default="bench_results.csv")
     ap.add_argument("--plot_out", type=str, default="bench_plot.png")
     args = ap.parse_args()
 
-    # Student on requested device (cuda), teacher on cpu to avoid OOM on 8GB
-    student_device = torch.device(args.device)
-    teacher_device = torch.device("cpu")
-
-    if args.dtype == "float16":
-        dtype = torch.float16
-    elif args.dtype == "bfloat16":
-        dtype = torch.bfloat16
-    else:
-        dtype = torch.float32
-
+    device = torch.device(args.device)
+    dtype = pick_dtype(args.dtype)
     block_sizes = [int(x.strip()) for x in args.block_sizes.split(",") if x.strip()]
 
     prompts = read_prompts(args.prompts_file, args.limit)
-    if len(prompts) == 0:
+    if not prompts:
         raise RuntimeError("No prompts loaded")
 
     tokenizer = AutoTokenizer.from_pretrained(args.model_path, local_files_only=True)
+    # Some llama tokenizers have no pad token; set it for safety
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
 
-    # Teacher (original) on CPU
-    teacher = AutoModelForCausalLM.from_pretrained(
-        args.model_path,
-        torch_dtype=dtype,
-        low_cpu_mem_usage=True,
-        local_files_only=True,
-        device_map=None,
-    ).to(teacher_device)
-    teacher.eval()
+    # Teacher cache once (then free teacher to avoid OOM)
+    print("Computing teacher cache (once)...")
+    teacher_cache = compute_teacher_cache(
+        model_path=args.model_path,
+        tokenizer=tokenizer,
+        prompts=prompts,
+        device=device,
+        dtype=dtype,
+        max_len=args.max_len,
+    )
 
     rows: List[Dict[str, float]] = []
 
     for B in block_sizes:
-        # Student (patched) on GPU
+        print(f"\n=== Bench B={B} ===")
+
         student = AutoModelForCausalLM.from_pretrained(
             args.model_path,
             torch_dtype=dtype,
             low_cpu_mem_usage=True,
             local_files_only=True,
             device_map=None,
-        ).to(student_device)
+        ).to(device)
         student.eval()
 
-        patch_mlp_layers(student, block_size=B, num_layers=args.num_layers)
+        # Patch using repo implementation (single source of truth)
+        patch_model_with_repo_patch(student, block_size=B, num_layers=args.num_layers)
 
         calib_path = None
         if args.calib_dir:
-            # Convention: bc_calibrated_B64.pt etc (adjust if you use a different naming)
             cand = os.path.join(args.calib_dir, f"bc_calibrated_B{B}.pt")
             if os.path.exists(cand):
                 calib_path = cand
 
-        missing_ct, unexpected_ct = maybe_load_calib(student, calib_path)
+        loaded, missing_ct, unexpected_ct = maybe_load_calib(student, calib_path)
 
-        # Accuracy / similarity metrics (teacher cpu, student gpu)
-        metrics = eval_one_model_pair(
-            teacher=teacher,
+        # Similarity metrics (student vs cached teacher)
+        metrics = eval_student_vs_teacher_cache(
             student=student,
             tokenizer=tokenizer,
             prompts=prompts,
-            teacher_device=teacher_device,
-            student_device=student_device,
+            teacher_cache=teacher_cache,
+            device=device,
             max_len=args.max_len,
             temperature=args.temperature,
         )
@@ -409,7 +304,7 @@ def main():
             model=student,
             tokenizer=tokenizer,
             prompts=prompts,
-            device=student_device,
+            device=device,
             max_len=args.max_len,
             warmup=args.warmup,
             runs=args.runs,
@@ -417,20 +312,21 @@ def main():
 
         row = {
             "B": float(B),
-            "logit_mse": metrics.logit_mse,
-            "logit_kl": metrics.logit_kl,
-            "token_agree": metrics.token_agree,
-            "avg_ms": avg_ms,
-            "tokens_per_s": tok_s,
-            "calib_loaded": 1.0 if calib_path else 0.0,
+            "logit_mse": float(metrics.logit_mse),
+            "logit_kl": float(metrics.logit_kl),
+            "token_agree": float(metrics.token_agree),
+            "avg_ms": float(avg_ms),
+            "tokens_per_s": float(tok_s),
+            "calib_loaded": float(loaded),
             "missing_keys": float(missing_ct),
             "unexpected_keys": float(unexpected_ct),
         }
         rows.append(row)
+        print(row)
 
-        # Free VRAM between runs
         del student
-        if student_device.type == "cuda":
+        gc.collect()
+        if device.type == "cuda":
             torch.cuda.empty_cache()
 
     # Write CSV
@@ -440,29 +336,26 @@ def main():
         for r in rows:
             w.writerow(r)
 
-    # Plot (single figure, dual axis)
+    # Plot: KL (lower is better) and tokens/s (higher is better)
     Bs = [int(r["B"]) for r in rows]
-    tokens_per_s = [r["tokens_per_s"] for r in rows]
-    # Choose one accuracy metric for the main plot (KL is often easiest to explain: smaller is better)
     logit_kl = [r["logit_kl"] for r in rows]
+    tokens_per_s = [r["tokens_per_s"] for r in rows]
 
     fig, ax1 = plt.subplots()
     ax1.plot(Bs, logit_kl, marker="o")
     ax1.set_xlabel("Block size B")
     ax1.set_ylabel("Logit KL (teacher || student), lower is better")
+    ax1.set_xticks(Bs)
 
     ax2 = ax1.twinx()
     ax2.plot(Bs, tokens_per_s, marker="s")
     ax2.set_ylabel("Tokens per second, higher is better")
 
-    ax1.set_xticks(Bs)
     fig.tight_layout()
     fig.savefig(args.plot_out, dpi=200)
 
-    print("Wrote:", args.csv_out)
+    print("\nWrote:", args.csv_out)
     print("Wrote:", args.plot_out)
-    for r in rows:
-        print(r)
 
 
 if __name__ == "__main__":

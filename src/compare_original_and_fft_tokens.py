@@ -68,8 +68,8 @@ def main():
     model_fft.eval()
     patch_mlp_with_block_circulant(model_fft)
     # Load calibrated BC params
-    load_bc_params(model_fft, "llama-fft/src/bc_calibrated.pt")
-
+    # load_bc_params(model_fft, "llama-fft/src/bc_calibrated.pt")
+    # load_bc_params(model_fft, r"..\llama-fft\src\bc_calibrated.pt")
     total_same = 0
     total_tokens = 0
 

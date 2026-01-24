@@ -224,61 +224,56 @@ class BlockCirculantLinear(nn.Module):
         return layer
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Unterstuetzt sowohl
-          x: (batch, in_features)        -> (batch, out_features)
-        als auch
-          x: (batch, seq_len, in_features) -> (batch, seq_len, out_features)
-        """
+        # Supports (batch, in_features) and (batch, seq, in_features)
         if x.dim() == 3:
-            # (batch, seq, in_features) -> zu (batch * seq, in_features) flatten
-            batch_size, seq_len, in_f = x.shape
+            bs, sl, in_f = x.shape
             assert in_f == self.in_features
-            x_flat = x.reshape(batch_size * seq_len, in_f)
+            x_flat = x.reshape(bs * sl, in_f)
             is_3d = True
         elif x.dim() == 2:
-            batch_size, in_f = x.shape
-            assert in_f == self.in_features
             x_flat = x
-            seq_len = 1
+            bs = x.shape[0]
+            sl = 1
             is_3d = False
         else:
-            raise ValueError(f"Unsupported input dim: {x.dim()} (expected 2 or 3)")
+            raise ValueError("Unsupported input dim")
 
-        device = x_flat.device
+        dev = x_flat.device
         dtype = x_flat.dtype
+        B = self.block_size
 
-        # Reshape input into blocks: (batch_flat, in_blocks, block_size)
-        x_blocks = x_flat.view(x_flat.shape[0], self.in_blocks, self.block_size)
+        # (N, in_blocks, B)
+        x_blocks = x_flat.view(x_flat.shape[0], self.in_blocks, B)
 
-        # Output blocks: (batch_flat, out_blocks, block_size)
-        y_blocks = torch.zeros(
-            x_flat.shape[0], self.out_blocks, self.block_size, device=device, dtype=dtype
-        )
+        # Compute in float32 for FFT stability
+        x32 = x_blocks.to(torch.float32)
 
-        # Explizite Schleifen fuer Verstaendlichkeit (nicht optimiert):
-        for b in range(x_flat.shape[0]):
-            for j in range(self.out_blocks):
-                acc = torch.zeros(self.block_size, device=device, dtype=dtype)
-                for i in range(self.in_blocks):
-                    c_ji = self.c[j, i]       # (block_size,)
-                    x_bi = x_blocks[b, i]     # (block_size,)
-                    acc = acc + circulant_matvec_fft(c_ji, x_bi)
-                y_blocks[b, j] = acc
+        # Xf: (N, in_blocks, F)
+        Xf = torch.fft.rfft(x32, dim=-1)
 
-        # Merge blocks back: (batch_flat, out_features)
-        y_flat = y_blocks.view(x_flat.shape[0], self.out_features)
+        # Cf: (out_blocks, in_blocks, F)
+        # If you do not cache, compute each forward:
+        C32 = self.c.to(torch.float32)
+        Cf = torch.fft.rfft(C32, dim=-1)
 
+        # Yf: (N, out_blocks, F) = sum_i Cf[j,i,f] * Xf[n,i,f]
+        Yf = torch.einsum("oif,nif->nof", Cf, Xf)
+
+        # y_blocks: (N, out_blocks, B)
+        y32 = torch.fft.irfft(Yf, n=B, dim=-1)
+
+        # Back to original dtype
+        y_blocks = y32.to(dtype)
+
+        # (N, out_features)
+        y_flat = y_blocks.reshape(x_flat.shape[0], self.out_features)
         if self.bias is not None:
             y_flat = y_flat + self.bias
 
         if is_3d:
-            # Zurueck zu (batch, seq_len, out_features)
-            y = y_flat.view(batch_size, seq_len, self.out_features)
-        else:
-            y = y_flat  # (batch, out_features)
+            return y_flat.view(bs, sl, self.out_features)
+        return y_flat
 
-        return y
 
 def _get_submodule_by_name(model: nn.Module, name: str) -> nn.Module:
     cur = model

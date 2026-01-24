@@ -66,7 +66,7 @@ def main():
     model_fft.eval()
     patch_mlp_with_block_circulant(model_fft)
     # Load calibrated BC params
-    load_bc_params(model_fft, "llama-fft/src/bc_calibrated.pt")
+    #load_bc_params(model_fft, "llama-fft/src/bc_calibrated.pt")
 
     logits_fft_list = [run_model(model_fft, t) for t in TEXTS]
 
