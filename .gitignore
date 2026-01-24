@@ -11,3 +11,17 @@ venv/
 # Models / cache
 models/
 .cache/
+
+# Ignore bench plot outputs
+bench_plot.*
+bench_plot*
+bench_plots/
+
+# Ignore image and figure outputs
+*.png
+*.jpg
+*.jpeg
+*.svg
+*.pdf
+*.pt
+*.csv

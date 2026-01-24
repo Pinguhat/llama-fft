@@ -6,8 +6,8 @@ from transformers import AutoModelForCausalLM
 from fft_utils import circulant_matvec_fft
 
 # Lokaler Pfad zu deinem Llama-2-7b-hf Modell
-MODEL_PATH = "/home/lukas/models/Llama-2-7b-hf"
-# MODEL_PATH = r"C:\Users\Lukas\Documents\0-UNI\Seminar\Llama2"
+# MODEL_PATH = "/home/lukas/models/Llama-2-7b-hf"
+MODEL_PATH = r"C:\Users\Lukas\Documents\0-UNI\Seminar\Llama2"
 
 # Blockgroesse fuer block-circulant Approximation
 BLOCK_SIZE = 256

@@ -2,7 +2,6 @@
 import os
 import time
 import csv
-import math
 import argparse
 from dataclasses import dataclass
 from typing import List, Dict, Tuple, Optional
@@ -24,16 +23,19 @@ def circulant_matvec_fft(c: torch.Tensor, x: torch.Tensor) -> torch.Tensor:
     n = c.shape[0]
     assert x.shape[0] == n
 
+    dev = x.device
     orig_dtype = x.dtype
-    c32 = c.to(torch.float32)
-    x32 = x.to(torch.float32)
+
+    # force same device
+    c32 = c.to(device=dev, dtype=torch.float32)
+    x32 = x.to(device=dev, dtype=torch.float32)
 
     fft_c = torch.fft.rfft(c32)
     fft_x = torch.fft.rfft(x32)
-    fft_y = fft_c * fft_x
-    y32 = torch.fft.irfft(fft_y, n=n)
+    y32 = torch.fft.irfft(fft_c * fft_x, n=n)
 
-    return y32.to(orig_dtype)
+    return y32.to(device=dev, dtype=orig_dtype)
+
 
 
 def dense_block_to_circulant_column_loss_aware(W_block: torch.Tensor, eps: float = 1e-12) -> torch.Tensor:
@@ -89,6 +91,8 @@ class BlockCirculantLinear(nn.Module):
             block_size=block_size,
             bias=(linear.bias is not None),
         )
+        # move new layer to same device + dtype as original linear
+        layer = layer.to(device=linear.weight.device, dtype=linear.weight.dtype)
 
         with torch.no_grad():
             W = linear.weight.data.clone()  # (out_f, in_f)
@@ -131,8 +135,7 @@ class BlockCirculantLinear(nn.Module):
         x_blocks = x_flat.view(x_flat.shape[0], self.in_blocks, self.block_size)
         y_blocks = torch.zeros(x_flat.shape[0], self.out_blocks, self.block_size, device=device, dtype=dtype)
 
-        # NOTE: This is not optimized. For performance benchmarking of FFT,
-        # you should vectorize and cache FFT(c). This script measures end-to-end as-is.
+        # Not optimized: ok for correctness/plots, not for peak speed
         for b in range(x_flat.shape[0]):
             for j in range(self.out_blocks):
                 acc = torch.zeros(self.block_size, device=device, dtype=dtype)
@@ -221,7 +224,8 @@ def eval_one_model_pair(
     student: AutoModelForCausalLM,
     tokenizer: AutoTokenizer,
     prompts: List[str],
-    device: torch.device,
+    teacher_device: torch.device,
+    student_device: torch.device,
     max_len: int,
     temperature: float,
 ) -> Metrics:
@@ -231,13 +235,17 @@ def eval_one_model_pair(
     count = 0
 
     for text in prompts:
-        inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=max_len)
-        inputs = {k: v.to(device) for k, v in inputs.items()}
+        tok = tokenizer(text, return_tensors="pt", truncation=True, max_length=max_len)
 
-        out_t = teacher(**inputs).logits
-        out_s = student(**inputs).logits
+        inputs_t = {k: v.to(teacher_device) for k, v in tok.items()}
+        inputs_s = {k: v.to(student_device) for k, v in tok.items()}
 
-        # Align shapes (batch, seq, vocab)
+        out_t = teacher(**inputs_t).logits
+        out_s = student(**inputs_s).logits
+
+        # Move teacher logits to student device for comparisons
+        out_t = out_t.to(student_device)
+
         assert out_t.shape == out_s.shape
 
         # MSE on logits
@@ -331,7 +339,9 @@ def main():
     ap.add_argument("--plot_out", type=str, default="bench_plot.png")
     args = ap.parse_args()
 
-    device = torch.device(args.device)
+    # Student on requested device (cuda), teacher on cpu to avoid OOM on 8GB
+    student_device = torch.device(args.device)
+    teacher_device = torch.device("cpu")
 
     if args.dtype == "float16":
         dtype = torch.float16
@@ -348,27 +358,27 @@ def main():
 
     tokenizer = AutoTokenizer.from_pretrained(args.model_path, local_files_only=True)
 
-    # Teacher (original)
+    # Teacher (original) on CPU
     teacher = AutoModelForCausalLM.from_pretrained(
         args.model_path,
         torch_dtype=dtype,
         low_cpu_mem_usage=True,
         local_files_only=True,
         device_map=None,
-    ).to(device)
+    ).to(teacher_device)
     teacher.eval()
 
     rows: List[Dict[str, float]] = []
 
     for B in block_sizes:
-        # Student (patched)
+        # Student (patched) on GPU
         student = AutoModelForCausalLM.from_pretrained(
             args.model_path,
             torch_dtype=dtype,
             low_cpu_mem_usage=True,
             local_files_only=True,
             device_map=None,
-        ).to(device)
+        ).to(student_device)
         student.eval()
 
         patch_mlp_layers(student, block_size=B, num_layers=args.num_layers)
@@ -382,23 +392,24 @@ def main():
 
         missing_ct, unexpected_ct = maybe_load_calib(student, calib_path)
 
-        # Accuracy / similarity metrics
+        # Accuracy / similarity metrics (teacher cpu, student gpu)
         metrics = eval_one_model_pair(
             teacher=teacher,
             student=student,
             tokenizer=tokenizer,
             prompts=prompts,
-            device=device,
+            teacher_device=teacher_device,
+            student_device=student_device,
             max_len=args.max_len,
             temperature=args.temperature,
         )
 
-        # Performance metrics
+        # Performance metrics (student only)
         avg_ms, tok_s = measure_forward_time_ms(
             model=student,
             tokenizer=tokenizer,
             prompts=prompts,
-            device=device,
+            device=student_device,
             max_len=args.max_len,
             warmup=args.warmup,
             runs=args.runs,
@@ -419,7 +430,7 @@ def main():
 
         # Free VRAM between runs
         del student
-        if device.type == "cuda":
+        if student_device.type == "cuda":
             torch.cuda.empty_cache()
 
     # Write CSV
