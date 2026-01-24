@@ -6,8 +6,8 @@ from transformers import AutoModelForCausalLM
 from fft_utils import circulant_matvec_fft
 
 # Lokaler Pfad zu deinem Llama-2-7b-hf Modell
-# Use a raw string (or escaped slashes) to avoid Python interpreting backslashes as escapes
-MODEL_PATH = r"C:\Users\Lukas\Documents\0-UNI\Seminar\Llama2"
+MODEL_PATH = "/home/lukas/models/Llama-2-7b-hf"
+# MODEL_PATH = r"C:\Users\Lukas\Documents\0-UNI\Seminar\Llama2"
 
 # Blockgroesse fuer block-circulant Approximation
 BLOCK_SIZE = 256
@@ -77,6 +77,66 @@ def dense_block_to_circulant_column(W_block: torch.Tensor, *, convention: str = 
         c[k] = vals.mean()
 
     return c
+
+
+def dense_block_to_circulant_column_loss_aware(W_block: torch.Tensor, eps: float = 1e-12) -> torch.Tensor:
+    """
+    Loss-aware patch heuristic for a BxB dense block.
+
+    Returns c (shape B,) interpreted as the FIRST COLUMN of a circulant matrix C(c),
+    with convention:
+        C[i, j] = c[(i - j) % B]
+
+    Steps:
+      1) Frobenius-optimal projection onto circulant subspace:
+         c[t] = mean_i W[i, (i - t) % B]
+      2) Optional energy-preserving scaling:
+         alpha = <W, C(c)> / <C(c), C(c)>
+         and return alpha * c
+
+    This is still "patch-only", but usually much closer than naive diagonal means
+    with the wrong index convention.
+    """
+    assert W_block.dim() == 2
+    B0, B1 = W_block.shape
+    assert B0 == B1
+    B = B0
+
+    device = W_block.device
+    dtype = W_block.dtype
+
+    idx = torch.arange(B, device=device)
+
+    # 1) Frobenius-optimal circulant projection (first-column convention)
+    #    For each t = (i - j) mod B, collect diagonal j = i - t.
+    c = torch.empty(B, device=device, dtype=dtype)
+    diag_sums = torch.empty(B, device=device, dtype=dtype)
+
+    for t in range(B):
+        cols = (idx - t) % B
+        diag_vals = W_block[idx, cols]
+        c[t] = diag_vals.mean()
+        diag_sums[t] = diag_vals.sum()
+
+    # 2) Energy-preserving scaling alpha (minimizes ||W - alpha*C||_F over alpha)
+    #    <W, C> = sum_t c[t] * sum_i W[i, (i - t) % B] = sum_t c[t] * diag_sums[t]
+    #    <C, C> = sum_{i,j} c[(i-j)%B]^2 = B * sum_t c[t]^2
+    numerator = (c * diag_sums).sum()
+    denom = (B * (c * c).sum()).clamp_min(eps)
+    alpha = numerator / denom
+
+    return (alpha * c).to(dtype)
+
+
+# OPTIONAL: if you want a debug helper to quantify block error
+def circulant_from_first_col(c: torch.Tensor) -> torch.Tensor:
+    """
+    Build explicit BxB circulant matrix from first column c.
+    C[:, j] = roll(c, j)
+    """
+    B = c.numel()
+    cols = [torch.roll(c, shifts=j, dims=0) for j in range(B)]
+    return torch.stack(cols, dim=1)
 
 
 class BlockCirculantLinear(nn.Module):
@@ -154,7 +214,8 @@ class BlockCirculantLinear(nn.Module):
             for j in range(out_blocks):
                 for i in range(in_blocks):
                     block = W_blocks[j, i]   # (B, B)
-                    c_ji = dense_block_to_circulant_column(block, convention=convention)
+                    c_ji = dense_block_to_circulant_column_loss_aware(block)
+                    #c_ji = dense_block_to_circulant_column(block, convention=convention)
                     layer.c.data[j, i].copy_(c_ji)
 
             if layer.bias is not None and linear.bias is not None:
