@@ -207,8 +207,8 @@ class BlockCirculantLinear(nn.Module):
             # Start from (out_f, in_f) = (out_blocks * B, in_blocks * B)
             W_blocks = W.view(out_blocks, B, in_blocks, B)  # (out_blocks, B, in_blocks, B)
             W_blocks = W_blocks.permute(0, 2, 1, 3)         # (out_blocks, in_blocks, B, B)
-            convention = _detect_best_convention_for_layer(W, block_size)
-            print(f"      Using circulant convention: {convention}")
+            # convention = _detect_best_convention_for_layer(W, block_size)
+            # print(f"      Using circulant convention: {convention}")
 
 
             for j in range(out_blocks):
@@ -243,7 +243,7 @@ class BlockCirculantLinear(nn.Module):
         B = self.block_size
 
         # (N, in_blocks, B)
-        x_blocks = x_flat.view(x_flat.shape[0], self.in_blocks, B)
+        x_blocks = x_flat.reshape(x_flat.shape[0], self.in_blocks, B)
 
         # Compute in float32 for FFT stability
         x32 = x_blocks.to(torch.float32)

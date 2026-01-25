@@ -70,7 +70,7 @@ def iter_trainable_params(model: nn.Module):
             yield p
 
 
-def pad_batch(items: List[Tuple[torch.Tensor, torch.Tensor]]) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+def pad_batch(items: List[Tuple[torch.Tensor, torch.Tensor]],pad_id: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """
     items: list of (input_ids, attention_mask), both 1D tensors
     Returns:
@@ -80,7 +80,7 @@ def pad_batch(items: List[Tuple[torch.Tensor, torch.Tensor]]) -> Tuple[torch.Ten
     """
     bsz = len(items)
     max_len = max(int(x[0].numel()) for x in items)
-    input_ids = torch.zeros((bsz, max_len), dtype=torch.long)
+    input_ids = torch.full((bsz, max_len), pad_id, dtype=torch.long)
     attention_mask = torch.zeros((bsz, max_len), dtype=torch.long)
     last_idx = torch.zeros((bsz,), dtype=torch.long)
 
@@ -88,7 +88,7 @@ def pad_batch(items: List[Tuple[torch.Tensor, torch.Tensor]]) -> Tuple[torch.Ten
         n = int(ids.numel())
         input_ids[i, :n] = ids
         attention_mask[i, :n] = attn
-        last_idx[i] = int(attn.sum().item()) - 1  # last token position
+        last_idx[i] = int(attn.sum().item()) - 1
 
     return input_ids, attention_mask, last_idx
 
@@ -144,6 +144,9 @@ def main():
 
     texts = load_texts(Path(args.prompts_file), args.limit)
     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, local_files_only=True)
+    if tokenizer.pad_token_id is None:
+        tokenizer.pad_token = tokenizer.eos_token
+    pad_id = int(tokenizer.pad_token_id)
 
     # ---------------------------------------
     # Tokenize prompts once (performance win)
@@ -267,7 +270,7 @@ def main():
 
             # prepare padded batch on CPU, then move to student device
             items = [(tok_ids[i], tok_attn[i]) for i in batch_indices]
-            input_ids, attention_mask, last_idx = pad_batch(items)
+            input_ids, attention_mask, last_idx = pad_batch(items, pad_id)
 
             input_ids = input_ids.to(sdev)
             attention_mask = attention_mask.to(sdev)
