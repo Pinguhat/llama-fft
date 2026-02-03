@@ -1,0 +1,20 @@
+You are preparing a short explanation for a class on efficient transformers. In two sentences, explain why FFT-based structured matrices can reduce compute.
+In a technical report, describe one advantage and one disadvantage of replacing dense MLP matrices with block-circulant approximations.
+Explain how a teacher-student comparison using last-token logits can reveal approximation error in a patched model.
+Suppose top-1 differs but top-5 overlap is high. Give a short interpretation of what that implies about the student distribution.
+Describe why increasing block size can reduce parameters but may reduce model fidelity, using an intuitive argument.
+In one paragraph, explain what KL divergence measures when comparing two next-token distributions.
+In one paragraph, explain why cosine similarity of logits can be high even if top-1 changes occasionally.
+You are profiling inference. Explain the difference between prefill throughput and decode throughput in autoregressive generation.
+Give a short explanation of why caching FFT(weight) is a valid optimization in inference for structured layers.
+Explain why patching only a single transformer layer might not lead to a noticeable end-to-end speedup.
+In two sentences, explain how block partitioning with size B affects both runtime and approximation quality.
+Provide a short description of what top-k overlap captures that top-1 accuracy does not.
+Explain why using float32 inside FFT operations can help numerical stability, even if the model runs in float16 overall.
+Write a concise definition of a circulant matrix and why it can be multiplied using FFT.
+Explain how a loss-aware projection of dense blocks into a structured form can reduce error compared to a naive average.
+Give a short explanation of why very short prompts can make evaluation metrics noisier for last-token comparisons.
+In two sentences, explain why MLP layers are often a target for compression in transformer inference.
+Explain how you would choose calibration prompts so that the calibrated parameters generalize to evaluation prompts.
+Write a short interpretation of a result where KL increases significantly for B=256 compared to B=64.
+In one sentence, summarize the overall trade-off you observed between block size, quality metrics, and throughput.

@@ -1,0 +1,34 @@
+{
+  "meta": {
+    "model_path": "C:\\Users\\Lukas\\Documents\\0-UNI\\Seminar\\Llama2",
+    "device": "cuda",
+    "dtype": "float16",
+    "num_layers": 1,
+    "max_len": 32,
+    "batch_size": 1,
+    "runs": 1,
+    "warmup": 0,
+    "max_new_tokens": 32,
+    "cache_cfft": 1,
+    "cache_for_correctness": 0,
+    "no_generate": true
+  },
+  "rows": [
+    {
+      "B": 64,
+      "calib_loaded": 0,
+      "missing_keys": 0,
+      "unexpected_keys": 0,
+      "last_mse": 6.593345483144124,
+      "last_kl": 1.180938760439555,
+      "last_cos": 0.9111786286036173,
+      "last_top1_acc": 0.6666666666666666,
+      "last_top1_in_student_topk": 0.6666666666666666,
+      "last_topk_overlap": 0.4000000000000001,
+      "prefill_avg_ms": 492.71593332135427,
+      "prefill_tokens_per_s": 22.32523703029041,
+      "peak_mem_bytes": 13232097280.0,
+      "decode_new_tokens_per_s": 0.0
+    }
+  ]
+}

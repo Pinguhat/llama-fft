@@ -1,0 +1,169 @@
+Computing teacher last-token cache (once)...
+Loading checkpoint shards: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:00<00:00, 23.36it/s]
+
+=== B=64 ===
+Loading checkpoint shards: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:00<00:00, 26.47it/s]
+Model has 32 transformer layers.
+Patching the first 1 layer(s).
+  Patching layer 0 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+Loaded BC params from .\calib_out_final_L50_T128_steps2200\bc_calibrated_B64.pt: loaded=3, skipped=0
+Enabled cFFT cache for perf: patched 3 BC layers
+{'B': 64, 'calib_loaded': 1, 'missing_keys': 0, 'unexpected_keys': 0, 'last_mse': 0.2126602867618203, 'last_kl': 0.01389737157151103, 'last_cos': 0.9898224771022797, 'last_top1_acc': 1.0, 'last_top1_in_student_topk': 1.0, 'last_topk_overlap': 0.9300000000000003, 'prefill_avg_ms': 470.7224600017071, 'prefill_tokens_per_s': 52.47253339029207, 'peak_mem_bytes': 13248764928.0, 'decode_new_tokens_per_s': 0.0}
+
+=== B=128 ===
+Loading checkpoint shards: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:00<00:00, 21.84it/s]
+Model has 32 transformer layers.
+Patching the first 1 layer(s).
+  Patching layer 0 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+Loaded BC params from .\calib_out_final_L50_T128_steps2200\bc_calibrated_B128.pt: loaded=3, skipped=0
+Enabled cFFT cache for perf: patched 3 BC layers
+{'B': 128, 'calib_loaded': 1, 'missing_keys': 0, 'unexpected_keys': 0, 'last_mse': 0.2545819882303476, 'last_kl': 0.009986758418381213, 'last_cos': 0.9913132220506669, 'last_top1_acc': 1.0, 'last_top1_in_student_topk': 1.0, 'last_topk_overlap': 0.93, 'prefill_avg_ms': 465.27695666688186, 'prefill_tokens_per_s': 53.08666085022588, 'peak_mem_bytes': 13244537856.0, 'decode_new_tokens_per_s': 0.0}
+
+=== B=256 ===
+Loading checkpoint shards: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:00<00:00, 23.35it/s]
+Model has 32 transformer layers.
+Patching the first 1 layer(s).
+  Patching layer 0 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+Loaded BC params from .\calib_out_final_L50_T128_steps2200\bc_calibrated_B256.pt: loaded=3, skipped=0
+Enabled cFFT cache for perf: patched 3 BC layers
+{'B': 256, 'calib_loaded': 1, 'missing_keys': 0, 'unexpected_keys': 0, 'last_mse': 4.944253087043762, 'last_kl': 0.15942134261131286, 'last_cos': 0.8218591183423996, 'last_top1_acc': 0.95, 'last_top1_in_student_topk': 1.0, 'last_topk_overlap': 0.8200000000000003, 'prefill_avg_ms': 465.4407566684919, 'prefill_tokens_per_s': 53.06797835410117, 'peak_mem_bytes': 13242424320.0, 'decode_new_tokens_per_s': 0.0}
+
+
+
+
+
+bench original:
+
+ python .\bench_all_in_one.py `
+>>   --model_path "C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2" `
+>>   --prompts_file ".\prompts_eval_20_quality_long.txt" `
+>>   --limit 20 `
+>>   --max_len 128 `
+>>   --block_sizes 64 `
+>>   --num_layers 0 `
+>>   --device cuda `
+>>   --dtype float16 `
+>>   --batch_size 2 `
+>>   --runs 3 `
+>>   --warmup 1 `
+>>   --no_generate `
+>>   --csv_out "bench_orig.csv" `
+>>   --json_out "bench_orig.json"
+Computing teacher last-token cache (once)...
+Loading checkpoint shards: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:00<00:00,  5.27it/s]
+
+=== B=64 ===
+Loading checkpoint shards: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:00<00:00, 16.44it/s]
+Model has 32 transformer layers.
+Patching the first 0 layer(s).
+Enabled cFFT cache for perf: patched 0 BC layers
+{'B': 64, 'calib_loaded': 0, 'missing_keys': 0, 'unexpected_keys': 0, 'last_mse': 0.0, 'last_kl': 0.0, 'last_cos': 1.00000002682209, 'last_top1_acc': 1.0, 'last_top1_in_student_topk': 1.0, 'last_topk_overlap': 1.0, 'prefill_avg_ms': 499.557143333368, 'prefill_tokens_per_s': 100.88935905049549, 'peak_mem_bytes': 13526508032.0, 'decode_new_tokens_per_s': 0.0}
+
+Wrote: bench_orig.csv
+Wrote: bench_orig.json
+(.venv) PS C:\Users\Lukas\Documents\0-UNI\Seminar\llama-fft\src>   python .\bench_all_in_one.py `
+>>   --model_path "C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2" `
+>>   --prompts_file ".\prompts_eval_20_quality_long.txt" `
+>>   --limit 20 `
+>>   --max_len 128 `
+>>   --block_sizes 128,256 `
+>>   --num_layers 0 `
+>>   --device cuda `
+>>   --dtype float16 `
+>>   --batch_size 2 `
+>>   --runs 3 `
+>>   --warmup 1 `
+>>   --no_generate `
+>>   --csv_out "bench_orig.csv" `
+>>   --json_out "bench_orig.json"
+Computing teacher last-token cache (once)...
+Loading checkpoint shards: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:00<00:00,  6.31it/s]
+
+=== B=128 ===
+Loading checkpoint shards: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:00<00:00, 19.84it/s]
+Model has 32 transformer layers.
+Patching the first 0 layer(s).
+Enabled cFFT cache for perf: patched 0 BC layers
+{'B': 128, 'calib_loaded': 0, 'missing_keys': 0, 'unexpected_keys': 0, 'last_mse': 0.0, 'last_kl': 0.0, 'last_cos': 1.00000002682209, 'last_top1_acc': 1.0, 'last_top1_in_student_topk': 1.0, 'last_topk_overlap': 1.0, 'prefill_avg_ms': 498.2072999972539, 'prefill_tokens_per_s': 101.16270877660322, 'peak_mem_bytes': 13526508032.0, 'decode_new_tokens_per_s': 0.0}
+
+=== B=256 ===
+Loading checkpoint shards: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:00<00:00, 24.34it/s]
+Model has 32 transformer layers.
+Patching the first 0 layer(s).
+Enabled cFFT cache for perf: patched 0 BC layers
+{'B': 256, 'calib_loaded': 0, 'missing_keys': 0, 'unexpected_keys': 0, 'last_mse': 0.0, 'last_kl': 0.0, 'last_cos': 1.00000002682209, 'last_top1_acc': 1.0, 'last_top1_in_student_topk': 1.0, 'last_topk_overlap': 1.0, 'prefill_avg_ms': 490.4516033323792, 'prefill_tokens_per_s': 102.76243294456906, 'peak_mem_bytes': 13526508032.0, 'decode_new_tokens_per_s': 0.0}
+
+Wrote: bench_orig.csv
+Wrote: bench_orig.json
+
+
+
+---------------------------------------------------------
+With new Calibration (more sufisticated prompts):
+
+python .\bench_all_in_one.py `
+>>   --model_path "C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2" `
+>>   --prompts_file ".\prompts_eval_20_quality_long.txt" `
+>>   --limit 20 `
+>>   --max_len 128 `
+>>   --block_sizes 64,128,256 `
+>>   --num_layers 1 `
+>>   --device cuda `
+>>   --dtype float16 `
+>>   --batch_size 2 `
+>>   --runs 10 `
+>>   --warmup 3 `
+>>   --no_generate `
+>>   --calib_dir ".\calib_out_long_L50_T128_steps1000" `
+>>   --csv_out "bench_eval_long_calib_GPU.csv" `
+>>   --json_out "bench_eval_long_calib_GPU.json" ;
+Computing teacher last-token cache (once)...
+Loading checkpoint shards: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:00<00:00, 17.48it/s]
+
+=== B=64 ===
+Loading checkpoint shards: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:00<00:00, 20.73it/s]
+Model has 32 transformer layers.
+Patching the first 1 layer(s).
+  Patching layer 0 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+Loaded BC params from .\calib_out_long_L50_T128_steps1000\bc_calibrated_B64.pt: loaded=3, skipped=0
+Enabled cFFT cache for perf: patched 3 BC layers
+{'B': 64, 'calib_loaded': 1, 'missing_keys': 0, 'unexpected_keys': 0, 'last_mse': 15.289758896827697, 'last_kl': 2.4112186431884766, 'last_cos': 0.83814697265625, 'last_top1_acc': 0.0, 'last_top1_in_student_topk': 0.9, 'last_topk_overlap': 0.19000000000000006, 'prefill_avg_ms': 541.250052999967, 'prefill_tokens_per_s': 93.11777379170634, 'peak_mem_bytes': 13264429568.0, 'decode_new_tokens_per_s': 0.0}
+
+=== B=128 ===
+Loading checkpoint shards: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:00<00:00, 23.03it/s]
+Model has 32 transformer layers.
+Patching the first 1 layer(s).
+  Patching layer 0 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+Loaded BC params from .\calib_out_long_L50_T128_steps1000\bc_calibrated_B128.pt: loaded=3, skipped=0
+Enabled cFFT cache for perf: patched 3 BC layers
+{'B': 128, 'calib_loaded': 1, 'missing_keys': 0, 'unexpected_keys': 0, 'last_mse': 4.349076780676842, 'last_kl': 0.1674244547262788, 'last_cos': 0.9163385480642319, 'last_top1_acc': 1.0, 'last_top1_in_student_topk': 1.0, 'last_topk_overlap': 0.6299999999999999, 'prefill_avg_ms': 491.18084499998076, 'prefill_tokens_per_s': 102.60986460089252, 'peak_mem_bytes': 13260202496.0, 'decode_new_tokens_per_s': 0.0}
+
+=== B=256 ===
+Loading checkpoint shards: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:00<00:00, 21.01it/s]
+Model has 32 transformer layers.
+Patching the first 1 layer(s).
+  Patching layer 0 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+Loaded BC params from .\calib_out_long_L50_T128_steps1000\bc_calibrated_B256.pt: loaded=3, skipped=0
+Enabled cFFT cache for perf: patched 3 BC layers
+{'B': 256, 'calib_loaded': 1, 'missing_keys': 0, 'unexpected_keys': 0, 'last_mse': 12.166606214642524, 'last_kl': 4.5699132175184785, 'last_cos': 0.7692724108695984, 'last_top1_acc': 0.15, 'last_top1_in_student_topk': 0.15, 'last_topk_overlap': 0.13999999999999999, 'prefill_avg_ms': 494.910871999964, 'prefill_tokens_per_s': 101.83651815190608, 'peak_mem_bytes': 13258088960.0, 'decode_new_tokens_per_s': 0.0}
+
+Wrote: bench_eval_long_calib_GPU.csv
+Wrote: bench_eval_long_calib_GPU.json

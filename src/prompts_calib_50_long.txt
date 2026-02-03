@@ -1,0 +1,50 @@
+You are writing a short report on efficient inference for LLMs on GPUs. Complete the sentence: The purpose of calibration is to
+In a deployment setting, we approximate dense weight matrices with structured ones to reduce compute. Complete the sentence: A good approximation should preserve
+Consider a teacher-student setup where the student replaces one MLP layer with a structured operator. Complete the sentence: The next-token distribution changes when
+You compare dense and structured linear layers in a transformer. Complete the sentence: The main benefit of structured weights is
+You evaluate compression methods for LLMs under a fixed latency budget. Complete the sentence: The main drawback of compression is
+In FFT-based multiplication, we transform vectors to the frequency domain. Complete the sentence: FFT-based multiplication is efficient because
+You study block-circulant matrices as a structured alternative to dense matrices. Complete the sentence: Block-circulant matrices are useful since
+While testing a patched model, you want a fast correctness check. Complete the sentence: A simple sanity check is to compare
+You need a metric to quantify how close two logit vectors are. Complete the sentence: A practical metric for similarity is
+When evaluating next-token predictions, you notice top-1 changes but top-5 is stable. Complete the sentence: When top-1 differs but top-5 matches, it means
+In transformer blocks, MLP layers contribute significantly to compute. Complete the sentence: In transformers, MLP layers contribute by
+You explain why attention and MLP have different computational patterns. Complete the sentence: Attention and MLP differ because
+You observe that a small change in logits can change the argmax token. Complete the sentence: A small logit shift can cause
+In knowledge distillation, the teacher provides a soft target distribution. Complete the sentence: The teacher model provides targets by
+In a block-circulant layer, each dense block is approximated by a circulant matrix. Complete the sentence: A circulant matrix is defined by
+You implement block partitioning of a weight matrix with block size B. Complete the sentence: The weight matrix is partitioned into
+You discuss storage savings from block-circulant structure. Complete the sentence: The parameter count is reduced because
+You explain the compute path for circulant matvec using FFT. Complete the sentence: The multiplication can be computed as
+You want to highlight where approximation error comes from in structured weights. Complete the sentence: The approximation error arises from
+You compare different block sizes and their effect on fidelity. Complete the sentence: Increasing the block size typically
+You calibrate only the structured parameters while freezing the rest of the model. Complete the sentence: Freezing most weights helps because
+You describe why last-token logits are a useful proxy for similarity. Complete the sentence: Comparing last-token logits is useful because
+You consider numerical precision for FFT operations. Complete the sentence: Using float32 for FFT improves stability by
+You want to explain what KL divergence measures in this context. Complete the sentence: KL divergence measures
+You want to explain what mean squared error on logits indicates. Complete the sentence: Logit MSE indicates
+You want to explain cosine similarity on logits to a reader. Complete the sentence: Cosine similarity compares
+You discuss the difference between matching probabilities and matching logits. Complete the sentence: Matching softmax probabilities differs from matching logits because
+You are writing about speedups and kernel overhead on GPUs. Complete the sentence: Practical speedups may be limited by
+You profile inference and separate prefill from decode. Complete the sentence: Prefill differs from decode because
+You replace only the first transformer block and observe small runtime changes. Complete the sentence: Patching only one layer often
+You evaluate whether caching FFT(c) changes results. Complete the sentence: Caching FFT of weights does not change outputs when
+You explain why vectorization is important for performance. Complete the sentence: Vectorization improves throughput by
+You want to explain what top-k overlap means. Complete the sentence: Top-k overlap measures
+You consider a case where the student has high cosine similarity but lower top-1 accuracy. Complete the sentence: This can happen when
+You document how you select prompts for calibration. Complete the sentence: Calibration prompts should
+You discuss generalization: prompts used for calibration differ from evaluation prompts. Complete the sentence: To avoid overfitting, evaluation prompts
+You explain why very short prompts can be a harsh test. Complete the sentence: Short prompts are sensitive because
+You consider structured layers in the MLP vs in attention projections. Complete the sentence: Patching MLP layers is attractive because
+You analyze memory usage during inference. Complete the sentence: Peak memory can increase due to
+You want to explain why block-circulant structure enables FFT. Complete the sentence: The circulant property enables
+You interpret a result where KL is low but MSE is moderate. Complete the sentence: This suggests that
+You interpret a result where top-1 accuracy is high but top-k overlap is lower. Complete the sentence: This suggests that
+You explain what it means if teacher top-1 is always in student top-5. Complete the sentence: This indicates that
+You explain why calibration may help more for smaller block sizes. Complete the sentence: Calibration is more effective when
+You consider stability across random prompt subsets. Complete the sentence: Results can vary with prompt selection because
+You describe how you would report results in a table. Complete the sentence: We report MSE, KL, and top-k metrics because
+You explain a choice of temperature in KL computation. Complete the sentence: Temperature scaling is used to
+You mention that only a subset of layers is patched during experiments. Complete the sentence: We patch the first N layers to
+You explain how a block-circulant approximation relates to low-rank or sparsity. Complete the sentence: Compared to low-rank methods, block-circulant structure
+You conclude a paragraph about trade-offs between compression and quality. Complete the sentence: Overall, the trade-off is between
