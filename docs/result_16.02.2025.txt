@@ -1,0 +1,260 @@
+python bench_all_in_one.py `
+>> --model_path "C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2" `
+>> --prompts_file ".\prompts_eval_20_quality_long.txt" `
+>> --limit 20 `
+>> --max_len 256 `
+>> --block_sizes 64,128,256 `
+>> --num_layers 8 `
+>> --device cuda `
+>> --dtype float16 `
+>> --batch_size 1 `
+>> --warmup 5 `
+>> --runs 20 `
+>> --max_new_tokens 64 `
+>> --cache_cfft 1 `
+>> --calib_dir ".\calib_out_long_L50_T128_steps500_L8" `
+>> --json_out bench_perf_64_128_256_L8.json `
+>> --csv_out bench_perf_64_128_256_L8.csv
+Computing teacher last-token cache (once)...
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:00<00:00, 14.74it/s]
+
+=== B=64 ===
+Loading checkpoint shards: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:00<00:00, 21.56it/s]
+Model has 32 transformer layers.
+Patching the first 8 layer(s).
+  Patching layer 0 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 1 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 2 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 3 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 4 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 5 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 6 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 7 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+Loaded BC params from .\calib_out_long_L50_T128_steps500_L8\bc_calibrated_B64.pt: loaded=24, skipped=0
+Enabled cFFT cache for perf: patched 24 BC layers
+The following generation flags are not valid and may be ignored: ['temperature', 'top_p']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+{'B': 64, 'calib_loaded': 1, 'missing_keys': 0, 'unexpected_keys': 0, 'last_mse': 8.06800627708435, 'last_kl': 3.298775923252106, 'last_cos': 0.7929001450538635, 'last_top1_acc': 0.0, 'last_top1_in_student_topk': 0.75, 'last_topk_overlap': 0.15000000000000002, 'prefill_avg_ms': 553.6180842500471, 'prefill_tok717171, 71, 71, 'prefill_tokens_per_s': 45.518744269593206, 'peak_mem_bytes': 11409324544.0, 'decode_new_tokens_per_s': 1.834246611813537}
+
+=== B=128 ===
+Loading checkpoint shards: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:00<00:00, 13.98it/s]
+Model has 32 transformer layers.
+Patching the first 8 layer(s).
+  Patching layer 0 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 1 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 2 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 3 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 4 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 5 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 6 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 7 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+Loaded BC params from .\calib_out_long_L50_T128_steps500_L8\bc_calibrated_B128.pt: loaded=24, skipped=0
+Enabled cFFT cache for perf: patched 24 BC layers
+{'B': 128, 'calib_loaded': 1, 'missing_keys': 0, 'unexpected_keys': 0, 'last_mse': 7.563505554199219, 'last_kl': 3.1253707647323608, 'last_cos': 0.8035384118556976, 'last_top1_acc': 0.0, 'last_top1_in_student_topk': 1.0, 'last_topk_overlap': 0.20000000000000004, 'prefill_avg_ms': 509.7347829998762, 'prefill_tokens_per_s': 49.437473840207055, 'peak_mem_bytes': 11375507968.0, 'decode_new_tokens_per_s': 1.9869753915830484}
+
+=== B=256 ===
+Loading checkpoint shards: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:00<00:00, 21.18it/s]
+Model has 32 transformer layers.
+Patching the first 8 layer(s).
+  Patching layer 0 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 1 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 2 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 3 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 4 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 5 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 6 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 7 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+>> --calib_dir ".\calib_out_long_L50_T128_steps500_L8" `
+>> --json_out bench_perf256_L8.json `
+>> --csv_out bench_perf256_L8.csv
+Computing teacher last-token cache (once)...
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:00<00:00, 16.75it/s]
+
+=== B=256 ===
+Loading checkpoint shards: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:00<00:00, 20.77it/s]
+Model has 32 transformer layers.
+Patching the first 8 layer(s).
+  Patching layer 0 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 1 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 2 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 3 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 4 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 5 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 6 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 7 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+Loaded BC params from .\calib_out_long_L50_T128_steps500_L8\bc_calibrated_B256.pt: loaded=24, skipped=0
+Enabled cFFT cache for perf: patched 24 BC layers
+The following generation flags are not valid and may be ignored: ['temperature', 'top_p']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+{'B': 256, 'calib_loaded': 1, 'missing_keys': 0, 'unexpected_keys': 0, 'last_mse': 8.836794567108154, 'last_kl': 3.141963851451874, 'last_cos': 0.7631089985370636, 'last_top1_acc': 0.0, 'last_top1_in_student_topk': 0.0, 'last_topk_overlap': 0.0, 'prefill_avg_ms': 489.1337515000487, 'prefill_tokens_per_s': 51.51965065325796, 'peak_mem_bytes': 11358599680.0, 'decode_new_tokens_per_s': 2.0199562903514163}
+
+Wrote: bench_perf256_L8.csv
+Wrote: bench_perf256_L8.json
+(.venv) PS C:\Users\Lukas\Documents\0-UNI\Seminar\llama-fft\src> 
+(.venv) PS C:\Users\Lukas\Documents\0-UNI\Seminar\llama-fft\src> lm-eval `
+>>   --model llama_fft `
+>>   --model_args "pretrained=C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2,dtype=float16,device=cuda,use_cache=False,block_size=128,num_layers=8,calib_path=C:/Users/Lukas/Documents/0-UNI/Seminar/LLAMA-FFT/src/calib_out_long_L50_T128_steps500_L8/bc_calibrated_B128.pt,cache_cfft=1" `
+>>   --tasks leaderboard_mmlu_pro,leaderboard_gpqa_main,leaderboard_bbh_boolean_expressions,leaderboard_bbh_date_understanding,leaderboard_bbh_object_counting `
+>>   --batch_size 1 `
+>>   --max_batch_size 1 `
+>>   --output_path out\fft_5tasks_L100_B128_L8 `
+>>   --limit 100
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\Lukas\Documents\0-UNI\Seminar\llama-fft\.venv\Scripts\lm-eval.exe\__main__.py", line 2, in <module>
+    from lm_eval.__main__ import cli_evaluate
+  File "C:\Users\Lukas\Documents\0-UNI\Seminar\lm-evaluation-harness\lm-evaluation-harness\lm_eval\__init__.py", line 1, in <module>
+    from .evaluator import evaluate, simple_evaluate
+  File "C:\Users\Lukas\Documents\0-UNI\Seminar\lm-evaluation-harness\lm-evaluation-harness\lm_eval\evaluator.py", line 15, in <module>
+    import lm_eval.models
+  File "C:\Users\Lukas\Documents\0-UNI\Seminar\lm-evaluation-harness\lm-evaluation-harness\lm_eval\models\__init__.py", line 17, in <module>
+    from lm_eval.models.llama_fft import LlamaFftLM
+  File "C:\Users\Lukas\Documents\0-UNI\Seminar\lm-evaluation-harness\lm-evaluation-harness\lm_eval\models\llama_fft.py", line 12, in <module>
+    import patch_llama_fft as plf
+ModuleNotFoundError: No module named 'patch_llama_fft'
+(.venv) PS C:\Users\Lukas\Documents\0-UNI\Seminar\llama-fft\src> 
+(.venv) PS C:\Users\Lukas\Documents\0-UNI\Seminar\llama-fft\src>   
+(.venv) PS C:\Users\Lukas\Documents\0-UNI\Seminar\llama-fft\src> lm-eval `
+>>   --model llama_fft `
+>>   --model_args "pretrained=C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2,dtype=float16,device=cuda,use_cache=False,block_size=64,num_layers=8,calib_path=C:/Users/Lukas/Documents/0-UNI/Seminar/LLAMA-FFT/src/calib_out_long_L50_T128_steps500_L8/bc_calibrated_B64.pt,cache_cfft=1" `
+>>   --tasks leaderboard_mmlu_pro,leaderboard_gpqa_main,leaderboard_bbh_boolean_expressions,leaderboard_bbh_date_understanding,leaderboard_bbh_object_counting `
+>>   --batch_size 1 `
+>>   --max_batch_size 1 `
+>>   --output_path out\fft_5tasks_L100_B64_L8 `
+>>   --limit 100
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\Lukas\Documents\0-UNI\Seminar\llama-fft\.venv\Scripts\lm-eval.exe\__main__.py", line 2, in <module>
+    from lm_eval.__main__ import cli_evaluate
+  File "C:\Users\Lukas\Documents\0-UNI\Seminar\lm-evaluation-harness\lm-evaluation-harness\lm_eval\__init__.py", line 1, in <module>
+    from .evaluator import evaluate, simple_evaluate
+  File "C:\Users\Lukas\Documents\0-UNI\Seminar\lm-evaluation-harness\lm-evaluation-harness\lm_eval\evaluator.py", line 15, in <module>
+    import lm_eval.models
+  File "C:\Users\Lukas\Documents\0-UNI\Seminar\lm-evaluation-harness\lm-evaluation-harness\lm_eval\models\__init__.py", line 17, in <module>
+    from lm_eval.models.llama_fft import LlamaFftLM
+  File "C:\Users\Lukas\Documents\0-UNI\Seminar\lm-evaluation-harness\lm-evaluation-harness\lm_eval\models\llama_fft.py", line 12, in <module>
+    import patch_llama_fft as plf
+ModuleNotFoundError: No module named 'patch_llama_fft'
+(.venv) PS C:\Users\Lukas\Documents\0-UNI\Seminar\llama-fft\src> 
+(.venv) PS C:\Users\Lukas\Documents\0-UNI\Seminar\llama-fft\src> 
+(.venv) PS C:\Users\Lukas\Documents\0-UNI\Seminar\llama-fft\src> lm-eval `
+>> --model llama_fft `
+>> --model_args "pretrained=C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2,dtype=float16,device=cuda,use_cache=False,block_size=256,num_layers=8,calib_path=C:/Users/Lukas/Documents/0-UNI/Seminar/LLAMA-FFT/src/calib_out_long_L50_T128_steps500_L8/bc_calibrated_B256.pt,cache_cfft=1" `
+>> --tasks leaderboard_mmlu_pro,leaderboard_gpqa_main,leaderboard_bbh_boolean_expressions,leaderboard_bbh_date_understanding,leaderboard_bbh_object_counting `
+>> --batch_size 1 `
+>> --max_batch_size 1 `
+>> --output_path out\fft_5tasks_L100_B256_L8 `
+>> --limit 100
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\Lukas\Documents\0-UNI\Seminar\llama-fft\.venv\Scripts\lm-eval.exe\__main__.py", line 2, in <module>
+    from lm_eval.__main__ import cli_evaluate
+  File "C:\Users\Lukas\Documents\0-UNI\Seminar\lm-evaluation-harness\lm-evaluation-harness\lm_eval\__init__.py", line 1, in <module>
+    from .evaluator import evaluate, simple_evaluate
+  File "C:\Users\Lukas\Documents\0-UNI\Seminar\lm-evaluation-harness\lm-evaluation-harness\lm_eval\evaluator.py", line 15, in <module>
+    import lm_eval.models
+  File "C:\Users\Lukas\Documents\0-UNI\Seminar\lm-evaluation-harness\lm-evaluation-harness\lm_eval\models\__init__.py", line 17, in <module>
+    from lm_eval.models.llama_fft import LlamaFftLM
+  File "C:\Users\Lukas\Documents\0-UNI\Seminar\lm-evaluation-harness\lm-evaluation-harness\lm_eval\models\llama_fft.py", line 12, in <module>
+    import patch_llama_fft as plf
+Loaded BC params from .\calib_out_long_L50_T128_steps500_L8\bc_calibrated_B256.pt: loaded=24, skipped=0
+Enabled cFFT cache for perf: patched 24 BC layers

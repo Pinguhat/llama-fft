@@ -1,0 +1,110 @@
+{
+  "results": {
+    "leaderboard_mmlu_pro": {
+      "alias": "leaderboard_mmlu_pro",
+      "acc,none": 0.15,
+      "acc_stderr,none": 0.08191780219091253
+    }
+  },
+  "group_subtasks": {
+    "leaderboard_mmlu_pro": []
+  },
+  "configs": {
+    "leaderboard_mmlu_pro": {
+      "task": "leaderboard_mmlu_pro",
+      "dataset_path": "TIGER-Lab/MMLU-Pro",
+      "test_split": "test",
+      "fewshot_split": "validation",
+      "doc_to_text": "def doc_to_text(doc):\n    doc_to_text = f\"{doc['question']}\\n\"\n\n    for i in range(len(doc[\"options\"])):\n        doc_to_text += f\"{string.ascii_uppercase[i]}. {doc['options'][i]}\\n\"\n\n    doc_to_text += \"Answer:\"\n    return doc_to_text\n",
+      "doc_to_target": "answer",
+      "doc_to_choice": "def doc_to_choice(doc):\n    return [string.ascii_uppercase[i] for i in range(len(doc[\"options\"]))]\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": {
+        "sampler": "first_n"
+      },
+      "num_fewshot": 5,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 0.1
+      }
+    }
+  },
+  "versions": {
+    "leaderboard_mmlu_pro": 0.1
+  },
+  "n-shot": {
+    "leaderboard_mmlu_pro": 5
+  },
+  "higher_is_better": {
+    "leaderboard_mmlu_pro": {
+      "acc": true
+    }
+  },
+  "n-samples": {
+    "leaderboard_mmlu_pro": {
+      "original": 12032,
+      "effective": 20
+    }
+  },
+  "config": {
+    "model": "hf",
+    "model_args": "pretrained=C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2,dtype=float16,use_cache=False",
+    "model_num_parameters": 6738415616,
+    "model_dtype": "torch.float16",
+    "model_revision": "main",
+    "model_sha": "",
+    "batch_size": "1",
+    "batch_sizes": [],
+    "device": null,
+    "use_cache": null,
+    "limit": 20.0,
+    "bootstrap_iters": 100000,
+    "gen_kwargs": null,
+    "random_seed": 0,
+    "numpy_seed": 1234,
+    "torch_seed": 1234,
+    "fewshot_seed": 1234
+  },
+  "git_hash": "b569ab01",
+  "date": 1770041251.6505697,
+  "pretty_env_info": "PyTorch version: 2.9.1+cu128\nIs debug build: False\nCUDA used to build PyTorch: 12.8\nROCM used to build PyTorch: N/A\n\nOS: Microsoft Windows 11 Education (10.0.26200 64-Bit)\nGCC version: (MinGW.org GCC Build-2) 9.2.0\r\nClang version: Could not collect\nCMake version: Could not collect\nLibc version: N/A\n\nPython version: 3.13.11 (tags/v3.13.11:6278944, Dec  5 2025, 16:26:58) [MSC v.1944 64 bit (AMD64)] (64-bit runtime)\nPython platform: Windows-11-10.0.26200-SP0\nIs CUDA available: True\nCUDA runtime version: Could not collect\nCUDA_MODULE_LOADING set to: \nGPU models and configuration: GPU 0: NVIDIA GeForce RTX 2060 SUPER\nNvidia driver version: 591.59\ncuDNN version: Could not collect\nIs XPU available: False\nHIP runtime version: N/A\nMIOpen runtime version: N/A\nIs XNNPACK available: True\n\nCPU:\nName: AMD Ryzen 5 3600 6-Core Processor              \nManufacturer: AuthenticAMD\nFamily: 107\nArchitecture: 9\nProcessorType: 3\nDeviceID: CPU0\nCurrentClockSpeed: 3600\nMaxClockSpeed: 3600\nL2CacheSize: 3072\nL2CacheSpeed: None\nRevision: 28928\n\nVersions of relevant libraries:\n[pip3] numpy==2.3.5\n[pip3] torch==2.9.1+cu128\n[pip3] torchaudio==2.9.1+cu128\n[pip3] torchvision==0.24.1+cu128\n[conda] Could not collect",
+  "transformers_version": "4.57.6",
+  "upper_git_hash": null,
+  "tokenizer_pad_token": [
+    "<unk>",
+    "0"
+  ],
+  "tokenizer_eos_token": [
+    "</s>",
+    "2"
+  ],
+  "tokenizer_bos_token": [
+    "<s>",
+    "1"
+  ],
+  "eot_token_id": 2,
+  "max_length": 4096,
+  "task_hashes": {},
+  "model_source": "hf",
+  "model_name": "C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2",
+  "model_name_sanitized": "C__Users__Lukas__Documents__0-UNI__Seminar__Llama2",
+  "system_instruction": null,
+  "system_instruction_sha": null,
+  "fewshot_as_multiturn": false,
+  "chat_template": null,
+  "chat_template_sha": null,
+  "start_time": 17651.1787473,
+  "end_time": 18073.215078,
+  "total_evaluation_time_seconds": "422.0363307000007"
+}

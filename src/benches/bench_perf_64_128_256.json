@@ -1,0 +1,66 @@
+{
+  "meta": {
+    "model_path": "C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2",
+    "device": "cuda",
+    "dtype": "float16",
+    "num_layers": 1,
+    "max_len": 256,
+    "batch_size": 1,
+    "runs": 20,
+    "warmup": 5,
+    "max_new_tokens": 64,
+    "cache_cfft": 1,
+    "cache_for_correctness": 0,
+    "no_generate": false
+  },
+  "rows": [
+    {
+      "B": 64,
+      "calib_loaded": 1,
+      "missing_keys": 0,
+      "unexpected_keys": 0,
+      "last_mse": 15.289758896827697,
+      "last_kl": 2.4112186431884766,
+      "last_cos": 0.83814697265625,
+      "last_top1_acc": 0.0,
+      "last_top1_in_student_topk": 0.9,
+      "last_topk_overlap": 0.19000000000000006,
+      "prefill_avg_ms": 493.90732725005364,
+      "prefill_tokens_per_s": 51.021717252722254,
+      "peak_mem_bytes": 13243873792.0,
+      "decode_new_tokens_per_s": 2.030180118018932
+    },
+    {
+      "B": 128,
+      "calib_loaded": 1,
+      "missing_keys": 0,
+      "unexpected_keys": 0,
+      "last_mse": 4.349076780676842,
+      "last_kl": 0.1674244547262788,
+      "last_cos": 0.9163385480642319,
+      "last_top1_acc": 1.0,
+      "last_top1_in_student_topk": 1.0,
+      "last_topk_overlap": 0.6299999999999999,
+      "prefill_avg_ms": 485.8608587499475,
+      "prefill_tokens_per_s": 51.866701229722636,
+      "peak_mem_bytes": 13239646720.0,
+      "decode_new_tokens_per_s": 2.035882607555077
+    },
+    {
+      "B": 256,
+      "calib_loaded": 1,
+      "missing_keys": 0,
+      "unexpected_keys": 0,
+      "last_mse": 12.166606214642524,
+      "last_kl": 4.5699132175184785,
+      "last_cos": 0.7692724108695984,
+      "last_top1_acc": 0.15,
+      "last_top1_in_student_topk": 0.15,
+      "last_topk_overlap": 0.13999999999999999,
+      "prefill_avg_ms": 491.38689400002477,
+      "prefill_tokens_per_s": 51.283419048613716,
+      "peak_mem_bytes": 13237533184.0,
+      "decode_new_tokens_per_s": 2.00982958629658
+    }
+  ]
+}

@@ -194,3 +194,107 @@ lm-eval `
 --output_path out\fft_5tasks_L100_B256 `
 --limit 100
 
+
+
+
+
+
+
+
+
+
+--------------------------------------------------------
+
+Performance Benchmarking after Calibration
+
+--------------------------------------------------------
+
+python bench_all_in_one.py `
+  --model_path "C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2" `
+  --prompts_file ".\prompts_eval_20_quality_long.txt" `
+  --limit 20 `
+  --max_len 256 `
+  --block_sizes 64,128,256 `
+  --num_layers 8 `
+  --device cuda `
+  --dtype float16 `
+  --batch_size 1 `
+  --warmup 5 `
+  --runs 20 `
+  --max_new_tokens 64 `
+  --cache_cfft 1 `
+  --calib_dir ".\calib_out_long_L50_T128_steps500_L8" `
+  --json_out bench_perf_64_128_256_L8.json `
+  --csv_out bench_perf_64_128_256_L8.csv
+
+
+  python bench_all_in_one.py `
+  --model_path "C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2" `
+  --prompts_file ".\prompts_eval_20_quality_long.txt" `
+  --limit 20 `
+  --max_len 256 `
+  --block_sizes 128 `
+  --num_layers 0 `
+  --device cuda `
+  --dtype float16 `
+  --batch_size 1 `
+  --warmup 5 `
+  --runs 20 `
+  --max_new_tokens 64 `
+  --cache_cfft 1 `
+  --json_out bench_perf_baseline.json `
+  --csv_out bench_perf_baseline.csv
+
+
+
+
+
+
+python bench_all_in_one.py `
+--model_path "C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2" `
+--prompts_file ".\prompts_eval_20_quality_long.txt" `
+--limit 20 `
+--max_len 256 `
+--block_sizes 256 `
+--num_layers 8 `
+--device cuda `
+--dtype float16 `
+--batch_size 1 `
+--warmup 5 `
+--runs 20 `
+--max_new_tokens 64 `
+--cache_cfft 1 `
+--calib_dir ".\calib_out_long_L50_T128_steps500_L8" `
+--json_out bench_perf256_L8.json `
+--csv_out bench_perf256_L8.csv
+
+lm-eval `
+  --model llama_fft `
+  --model_args "pretrained=C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2,dtype=float16,device=cuda,use_cache=False,block_size=128,num_layers=8,calib_path=C:/Users/Lukas/Documents/0-UNI/Seminar/LLAMA-FFT/src/calib_out_long_L50_T128_steps500_L8/bc_calibrated_B128.pt,cache_cfft=1" `
+  --tasks leaderboard_mmlu_pro,leaderboard_gpqa_main,leaderboard_bbh_boolean_expressions,leaderboard_bbh_date_understanding,leaderboard_bbh_object_counting `
+  --batch_size 1 `
+  --max_batch_size 1 `<>
+  --output_path out\fft_5tasks_L100_B128_L8 `
+  --limit 100
+
+  
+lm-eval `
+  --model llama_fft `
+  --model_args "pretrained=C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2,dtype=float16,device=cuda,use_cache=False,block_size=64,num_layers=8,calib_path=C:/Users/Lukas/Documents/0-UNI/Seminar/LLAMA-FFT/src/calib_out_long_L50_T128_steps500_L8/bc_calibrated_B64.pt,cache_cfft=1" `
+  --tasks leaderboard_mmlu_pro,leaderboard_gpqa_main,leaderboard_bbh_boolean_expressions,leaderboard_bbh_date_understanding,leaderboard_bbh_object_counting `
+  --batch_size 1 `
+  --max_batch_size 1 `
+  --output_path out\fft_5tasks_L100_B64_L8 `
+  --limit 100
+
+
+lm-eval `
+--model llama_fft `
+--model_args "pretrained=C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2,dtype=float16,device=cuda,use_cache=False,block_size=256,num_layers=8,calib_path=C:/Users/Lukas/Documents/0-UNI/Seminar/LLAMA-FFT/src/calib_out_long_L50_T128_steps500_L8/bc_calibrated_B256.pt,cache_cfft=1" `
+--tasks leaderboard_mmlu_pro,leaderboard_gpqa_main,leaderboard_bbh_boolean_expressions,leaderboard_bbh_date_understanding,leaderboard_bbh_object_counting `
+--batch_size 1 `
+--max_batch_size 1 `
+--output_path out\fft_5tasks_L100_B256_L8 `
+--limit 100
+
+
