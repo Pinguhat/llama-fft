@@ -258,3 +258,255 @@ Traceback (most recent call last):
     import patch_llama_fft as plf
 Loaded BC params from .\calib_out_long_L50_T128_steps500_L8\bc_calibrated_B256.pt: loaded=24, skipped=0
 Enabled cFFT cache for perf: patched 24 BC layers
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ lm-eval `
+>>   --model llama_fft `
+>>   --model_args "pretrained=C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2,dtype=float16,device=cuda,use_cache=False,block_size=64,num_layers=8,patch_position=last,cache_cfft=1" `
+>>   --tasks leaderboard_mmlu_pro,leaderboard_gpqa_main,leaderboard_bbh_boolean_expressions,leaderboard_bbh_date_understanding,leaderboard_bbh_object_counting `
+>>   --batch_size 1 `
+>>   --max_batch_size 1 `
+>>   --output_path out\fft_5tasks_L100_B64_Last_L8_nocal `
+>>   --limit 100
+2026-02-28:16:02:35,261 INFO     [__main__.py:272] Verbosity set to INFO
+2026-02-28:16:02:35,314 INFO     [__init__.py:491] `group` and `group_alias` keys in tasks' configs will no longer be used in the next release of lm-eval. `tag` will be used to allow to call a collection of tasks just like `group`. `group` will be removed in order to not cause confusion with the new ConfigurableGroup which will be the offical way to create groups with addition of group-wide configuations.
+2026-02-28:16:02:41,416 WARNING  [__main__.py:305]  --limit SHOULD ONLY BE USED FOR TESTING.REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT.
+2026-02-28:16:02:41,427 INFO     [__main__.py:369] Selected Tasks: ['leaderboard_bbh_boolean_expressions', 'leaderboard_bbh_date_understanding', 'leaderboard_bbh_object_counting', 'leaderboard_gpqa_main', 'leaderboard_mmlu_pro']
+2026-02-28:16:02:41,433 INFO     [evaluator.py:158] Setting random seed to 0 | Setting numpy seed to 1234 | Setting torch manual seed to 1234
+2026-02-28:16:02:41,433 INFO     [evaluator.py:195] Initializing llama_fft model, with arguments: {'pretrained': 'C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2', 'dtype': 'float16', 'device': 'cuda', 'use_cache': False, 'block_size': 64, 'num_layers': 8, 'patch_position': 'last', 'cache_cfft': 1}
+2026-02-28:16:02:41,539 INFO     [huggingface.py:172] Using device 'cuda'
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards: 100%|████████████████████████████████████████████████| 2/2 [00:24<00:00, 12.33s/it] 
+2026-02-28:16:03:06,565 INFO     [huggingface.py:252] Model placed onto device 'cuda'
+Model has 32 transformer layers.
+Patching 8 layer(s) from last: [24, 25, 26, 27, 28, 29, 30, 31]
+  Patching layer 24 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 25 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 26 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 27 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 28 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 29 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 30 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 31 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+2026-02-28:16:59:53,051 INFO     [evaluator.py:274] Setting fewshot random generator seed to 1234
+2026-02-28:16:59:53,051 INFO     [evaluator.py:274] Setting fewshot random generator seed to 1234
+2026-02-28:16:59:53,052 INFO     [evaluator.py:274] Setting fewshot random generator seed to 1234
+2026-02-28:16:59:53,052 INFO     [evaluator.py:274] Setting fewshot random generator seed to 1234
+2026-02-28:16:59:53,052 INFO     [evaluator.py:274] Setting fewshot random generator seed to 1234
+2026-02-28:16:59:53,060 INFO     [task.py:423] Building contexts for leaderboard_mmlu_pro on rank 0...
+100%|████████████████████████████████████████████████████████████████████| 100/100 [00:00<00:00, 16370.57it/s]
+2026-02-28:16:59:53,076 INFO     [task.py:423] Building contexts for leaderboard_gpqa_main on rank 0...        
+100%|█████████████████████████████████████████████████████████████████████| 100/100 [00:00<00:00, 1483.29it/s]
+2026-02-28:16:59:53,215 INFO     [task.py:423] Building contexts for leaderboard_bbh_object_counting on rank 0...
+100%|██████████████████████████████████████████████████████████████████████| 100/100 [00:00<00:00, 417.00it/s] 
+2026-02-28:16:59:53,458 INFO     [task.py:423] Building contexts for leaderboard_bbh_date_understanding on rank 0...
+100%|██████████████████████████████████████████████████████████████████████| 100/100 [00:00<00:00, 172.08it/s] 
+2026-02-28:16:59:54,042 INFO     [task.py:423] Building contexts for leaderboard_bbh_boolean_expressions on rank 0...
+100%|██████████████████████████████████████████████████████████████████████| 100/100 [00:00<00:00, 449.96it/s]
+2026-02-28:16:59:54,269 INFO     [evaluator.py:457] Running loglikelihood requests
+Running loglikelihood requests: 100%|███████████████████████████████████| 4096/4096 [1:48:02<00:00,  1.58s/it]
+2026-02-28:18:48:00,193 WARNING  [huggingface.py:1368] Failed to get model SHA for C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2 at revision main. Error: Repo id must be in the form 'repo_name' or 'namespace/repo_name': 'C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2'. Use `repo_type` argument if needed.
+2026-02-28:18:48:04,477 INFO     [evaluation_tracker.py:206] Saving results aggregated
+llama_fft (pretrained=C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2,dtype=float16,device=cuda,use_cache=False,block_size=64,num_layers=8,patch_position=last,cache_cfft=1), gen_kwargs: (None), limit: 100.0, num_fewshot: None, batch_size: 1
+|               Tasks               |Version|Filter|n-shot| Metric |   |Value|   |Stderr|
+|-----------------------------------|------:|------|-----:|--------|---|----:|---|-----:|
+|leaderboard_bbh_boolean_expressions|    0.0|none  |     3|acc_norm|↑  | 0.63|±  |0.0485|
+|leaderboard_bbh_date_understanding |    0.0|none  |     3|acc_norm|↑  | 0.34|±  |0.0476|
+|leaderboard_bbh_object_counting    |    0.0|none  |     3|acc_norm|↑  | 0.16|±  |0.0368|
+|leaderboard_gpqa_main              |    1.0|none  |     0|acc_norm|↑  | 0.22|±  |0.0416|
+|leaderboard_mmlu_pro               |    0.1|none  |     5|acc     |↑  | 0.19|±  |0.0394|
+
+(.venv) PS C:\Users\Lukas\Documents\0-UNI\Seminar\llama-fft\src> 
+(.venv) PS C:\Users\Lukas\Documents\0-UNI\Seminar\llama-fft\src> 
+(.venv) PS C:\Users\Lukas\Documents\0-UNI\Seminar\llama-fft\src> 
+(.venv) PS C:\Users\Lukas\Documents\0-UNI\Seminar\llama-fft\src> lm-eval `
+>> --model llama_fft `
+>> --model_args "pretrained=C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2,dtype=float16,device=cuda,use_cache=False,block_size=128,num_layers=8,patch_position=last,cache_cfft=1" `
+>> --tasks leaderboard_mmlu_pro,leaderboard_gpqa_main,leaderboard_bbh_boolean_expressions,leaderboard_bbh_date_understanding,leaderboard_bbh_object_counting `
+>> --batch_size 1 `
+>> --max_batch_size 1 `
+>> --output_path out\fft_5tasks_L100_B128_Last_L8_nocal `
+>> --limit 100
+2026-02-28:18:48:16,536 INFO     [__main__.py:272] Verbosity set to INFO
+2026-02-28:18:48:16,601 INFO     [__init__.py:491] `group` and `group_alias` keys in tasks' configs will no longer be used in the next release of lm-eval. `tag` will be used to allow to call a collection of tasks just like `group`. `group` will be removed in order to not cause confusion with the new ConfigurableGroup which will be the offical way to create groups with addition of group-wide configuations.
+2026-02-28:18:48:23,164 WARNING  [__main__.py:305]  --limit SHOULD ONLY BE USED FOR TESTING.REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT.
+2026-02-28:18:48:23,176 INFO     [__main__.py:369] Selected Tasks: ['leaderboard_bbh_boolean_expressions', 'leaderboard_bbh_date_understanding', 'leaderboard_bbh_object_counting', 'leaderboard_gpqa_main', 'leaderboard_mmlu_pro']
+2026-02-28:18:48:23,183 INFO     [evaluator.py:158] Setting random seed to 0 | Setting numpy seed to 1234 | Setting torch manual seed to 1234
+2026-02-28:18:48:23,183 INFO     [evaluator.py:195] Initializing llama_fft model, with arguments: {'pretrained': 'C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2', 'dtype': 'float16', 'device': 'cuda', 'use_cache': False, 'block_size': 128, 'num_layers': 8, 'patch_position': 'last', 'cache_cfft': 1}
+2026-02-28:18:48:23,272 INFO     [huggingface.py:172] Using device 'cuda'
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards: 100%|████████████████████████████████████████████████| 2/2 [00:29<00:00, 14.89s/it]
+2026-02-28:18:48:53,467 INFO     [huggingface.py:252] Model placed onto device 'cuda'
+Model has 32 transformer layers.
+Patching 8 layer(s) from last: [24, 25, 26, 27, 28, 29, 30, 31]
+  Patching layer 24 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 25 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 26 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 27 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 28 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 29 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 30 MLP...
+100 [00:00<00:00, 1517.42it/s]
+2026-02-28:19:18:28,294 INFO     [task.py:423] Building contexts for leaderboard_bbh_object_counting on rank 0...
+100%|██████████████████████████████████████████████████████████████████████| 100/100 [00:00<00:00, 428.69it/s]
+2026-02-28:19:18:28,530 INFO     [task.py:423] Building contexts for leaderboard_bbh_date_understanding on rank 0...
+100%|██████████████████████████████████████████████████████████████████████| 100/100 [00:00<00:00, 180.37it/s]
+2026-02-28:19:18:29,088 INFO     [task.py:423] Building contexts for leaderboard_bbh_boolean_expressions on rank 0...
+100%|██████████████████████████████████████████████████████████████████████| 100/100 [00:00<00:00, 412.35it/s]
+2026-02-28:19:18:29,333 INFO     [evaluator.py:457] Running loglikelihood requests
+Running loglikelihood requests:  29%|██████████                         | 1175/4Running loglikelihood requests:  29%|██████████                         | 1176/4096Running loglikelihood requests: 100%|███████████████████████████████████| 4096/4096 [1:46:46<00:00,  1.56s/it]
+2026-02-28:21:05:19,547 WARNING  [huggingface.py:1368] Failed to get model SHA for C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2 at revision main. Error: Repo id must be in the form 'repo_name' or 'namespace/repo_name': 'C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2'. Use `repo_type` argument if needed.
+2026-02-28:21:05:22,323 INFO     [evaluation_tracker.py:206] Saving results aggregated
+llama_fft (pretrained=C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2,dtype=float16,device=cuda,use_cache=False,block_size=128,num_layers=8,patch_position=last,cache_cfft=1), gen_kwargs: (None), limit: 100.0, num_fewshot: None, batch_size: 1
+|               Tasks               |Version|Filter|n-shot| Metric |   |Value|   |Stderr|
+|-----------------------------------|------:|------|-----:|--------|---|----:|---|-----:|
+|leaderboard_bbh_boolean_expressions|    0.0|none  |     3|acc_norm|↑  | 0.63|±  |0.0485|
+|leaderboard_bbh_date_understanding |    0.0|none  |     3|acc_norm|↑  | 0.34|±  |0.0476|
+|leaderboard_bbh_object_counting    |    0.0|none  |     3|acc_norm|↑  | 0.17|±  |0.0378|
+|leaderboard_gpqa_main              |    1.0|none  |     0|acc_norm|↑  | 0.22|±  |0.0416|
+|leaderboard_mmlu_pro               |    0.1|none  |     5|acc     |↑  | 0.19|±  |0.0394|
+
+(.venv) PS C:\Users\Lukas\Documents\0-UNI\Seminar\llama-fft\src> 
+(.venv) PS C:\Users\Lukas\Documents\0-UNI\Seminar\llama-fft\src> 
+(.venv) PS C:\Users\Lukas\Documents\0-UNI\Seminar\llama-fft\src> 
+(.venv) PS C:\Users\Lukas\Documents\0-UNI\Seminar\llama-fft\src> lm-eval `
+>> --model llama_fft `
+>> --model_args "pretrained=C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2,dtype=float16,device=cuda,use_cache=False,block_size=256,num_layers=8,patch_position=last,cache_cfft=1" `
+>> --tasks leaderboard_mmlu_pro,leaderboard_gpqa_main,leaderboard_bbh_boolean_expressions,leaderboard_bbh_date_understanding,leaderboard_bbh_object_counting `     
+>> --batch_size 1 `
+>> --max_batch_size 1 `
+>> --output_path out\fft_5tasks_L100_B256_Last_L8_nocal `
+>> --limit 100
+2026-02-28:21:05:34,452 INFO     [__main__.py:272] Verbosity set to INFO
+2026-02-28:21:05:34,506 INFO     [__init__.py:491] `group` and `group_alias` keys in tasks' configs will no longer be used in the next release of lm-eval. `tag` will be used to allow to call a collection of tasks just like `group`. `group` will be removed in order to not cause confusion with the new ConfigurableGroup which will be the offical way to create groups with addition of group-wide configuations.
+2026-02-28:21:05:41,074 WARNING  [__main__.py:305]  --limit SHOULD ONLY BE USED FOR TESTING.REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT.
+2026-02-28:21:05:41,086 INFO     [__main__.py:369] Selected Tasks: ['leaderboard_bbh_boolean_expressions', 'leaderboard_bbh_date_understanding', 'leaderboard_bbh_object_counting', 'leaderboard_gpqa_main', 'leaderboard_mmlu_pro']
+2026-02-28:21:05:41,092 INFO     [evaluator.py:158] Setting random seed to 0 | Setting numpy seed to 1234 | Setting torch manual seed to 1234
+2026-02-28:21:05:41,092 INFO     [evaluator.py:195] Initializing llama_fft model, with arguments: {'pretrained': 'C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2', 'dtype': 'float16', 'device': 'cuda', 'use_cache': False, 'block_size': 256, 'num_layers': 8, 'patch_position': 'last', 'cache_cfft': 1}
+2026-02-28:21:05:41,172 INFO     [huggingface.py:172] Using device 'cuda'
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:29<00:00, 14.80s/it]
+2026-02-28:21:06:11,208 INFO     [huggingface.py:252] Model placed onto device 'cuda'
+Model has 32 transformer layers.
+Patching 8 layer(s) from last: [24, 25, 26, 27, 28, 29, 30, 31]
+  Patching layer 24 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 25 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 26 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 27 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 28 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 29 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 30 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+  Patching layer 31 MLP...
+    Replacing gate_proj: in_features=4096, out_features=11008
+    Replacing up_proj: in_features=4096, out_features=11008
+    Replacing down_proj: in_features=11008, out_features=4096
+2026-02-28:21:20:08,919 INFO     [evaluator.py:274] Setting fewshot random generator seed to 1234
+2026-02-28:21:20:08,919 INFO     [evaluator.py:274] Setting fewshot random generator seed to 1234
+2026-02-28:21:20:08,919 INFO     [evaluator.py:274] Setting fewshot random generator seed to 1234
+2026-02-28:21:20:08,919 INFO     [evaluator.py:274] Setting fewshot random generator seed to 1234
+2026-02-28:21:20:08,920 INFO     [evaluator.py:274] Setting fewshot random generator seed to 1234
+2026-02-28:21:20:08,926 INFO     [task.py:423] Building contexts for leaderboard_mmlu_pro on rank 0...
+100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 100/100 [00:00<00:00, 15991.70it/s]
+2026-02-28:21:20:08,942 INFO     [task.py:423] Building contexts for leaderboard_gpqa_main on rank 0...
+100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 100/100 [00:00<00:00, 1459.26it/s]
+2026-02-28:21:20:09,090 INFO     [task.py:423] Building contexts for leaderboard_bbh_object_counting on rank 0...
+100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 100/100 [00:00<00:00, 438.12it/s] 
+2026-02-28:21:20:09,321 INFO     [task.py:423] Building contexts for leaderboard_bbh_date_understanding on rank 0...
+100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 100/100 [00:00<00:00, 172.00it/s] 
+2026-02-28:21:20:09,905 INFO     [task.py:423] Building contexts for leaderboard_bbh_boolean_expressions on rank 0...
+100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 100/100 [00:00<00:00, 375.77it/s] 
+2026-02-28:21:20:10,177 INFO     [evaluator.py:457] Running loglikelihood requests
+Running loglikelihood requests: 100%|███████████████████████████████████████████████████████████████████████████████████████| 4096/4096 [1:35:55<00:00,  1.41s/it]
+2026-02-28:22:56:09,361 WARNING  [huggingface.py:1368] Failed to get model SHA for C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2 at revision main. Error: Repo id must be in the form 'repo_name' or 'namespace/repo_name': 'C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2'. Use `repo_type` argument if needed.
+2026-02-28:22:56:12,320 INFO     [evaluation_tracker.py:206] Saving results aggregated
+llama_fft (pretrained=C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2,dtype=float16,device=cuda,use_cache=False,block_size=256,num_layers=8,patch_position=last,cache_cfft=1), gen_kwargs: (None), limit: 100.0, num_fewshot: None, batch_size: 1
+|               Tasks               |Version|Filter|n-shot| Metric |   |Value|   |Stderr|
+|-----------------------------------|------:|------|-----:|--------|---|----:|---|-----:|
+|leaderboard_bbh_boolean_expressions|    0.0|none  |     3|acc_norm|↑  | 0.63|±  |0.0485|
+|leaderboard_bbh_date_understanding |    0.0|none  |     3|acc_norm|↑  | 0.34|±  |0.0476|
+|leaderboard_bbh_object_counting    |    0.0|none  |     3|acc_norm|↑  | 0.17|±  |0.0378|
+|leaderboard_gpqa_main              |    1.0|none  |     0|acc_norm|↑  | 0.22|±  |0.0416|
+|leaderboard_mmlu_pro               |    0.1|none  |     5|acc     |↑  | 0.19|±  |0.0394|

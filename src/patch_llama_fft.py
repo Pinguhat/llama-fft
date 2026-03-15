@@ -344,18 +344,35 @@ def patch_mlp_with_block_circulant(
     model: AutoModelForCausalLM,
     *,
     num_layers_to_patch: int = NUM_LAYERS_TO_PATCH,
-    block_size: int = BLOCK_SIZE
+    block_size: int = BLOCK_SIZE,
+    patch_position: str = "first",
 ) -> None:
     """
-    Replace MLP linear layers in the first NUM_LAYERS_TO_PATCH transformer
-    layers with BlockCirculantLinear layers that approximate the original
-    dense weights.
+    Replace MLP linear layers in selected transformer layers with
+    BlockCirculantLinear layers that approximate the original dense weights.
+
+    patch_position:
+      - "first": patch the first num_layers_to_patch layers
+      - "last":  patch the last num_layers_to_patch layers
     """
     n_layers = model.config.num_hidden_layers
     print(f"Model has {n_layers} transformer layers.")
-    print(f"Patching the first {num_layers_to_patch} layer(s).")
 
-    for layer_idx in range(num_layers_to_patch):
+    if num_layers_to_patch < 0:
+        raise ValueError("num_layers_to_patch must be >= 0")
+
+    k = min(num_layers_to_patch, n_layers)
+    if patch_position not in ("first", "last"):
+        raise ValueError("patch_position must be 'first' or 'last'")
+
+    if patch_position == "first":
+        layer_indices = list(range(k))
+    else:
+        layer_indices = list(range(n_layers - k, n_layers))
+
+    print(f"Patching {k} layer(s) from {patch_position}: {layer_indices}")
+
+    for layer_idx in layer_indices:
         mlp = model.model.layers[layer_idx].mlp
         print(f"  Patching layer {layer_idx} MLP...")
 

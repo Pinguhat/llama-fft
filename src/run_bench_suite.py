@@ -39,6 +39,7 @@ def main():
     # patched settings
     patched_block_sizes = "64,128,256"
     num_layers_patched = 1
+    patch_position = "first"  # change to "last" to patch the last N layers
 
     # caching: for original set 0, for patched set 1
     cache_cfft_orig = 0
@@ -93,6 +94,7 @@ def main():
         "--block_sizes", orig_block_sizes,
         "--num_layers", "0",
         "--cache_cfft", str(cache_cfft_orig),
+        "--patch_position", patch_position,
     ]
     for i in range(1, 4):
         ok_all &= run_setting("orig", orig_args, i)
@@ -104,6 +106,7 @@ def main():
         "--block_sizes", patched_block_sizes,
         "--num_layers", str(num_layers_patched),
         "--cache_cfft", str(cache_cfft_patched),
+        "--patch_position", patch_position,
     ]
     for i in range(1, 4):
         ok_all &= run_setting("L1_nocal", l1_nocal_args, i)
@@ -115,6 +118,7 @@ def main():
         "--block_sizes", patched_block_sizes,
         "--num_layers", str(num_layers_patched),
         "--cache_cfft", str(cache_cfft_patched),
+        "--patch_position", patch_position,
         "--calib_dir", calib_dir,
     ]
     for i in range(1, 4):

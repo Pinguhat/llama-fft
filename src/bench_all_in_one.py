@@ -124,7 +124,7 @@ def softmax_kl(student_logits: torch.Tensor, teacher_logits: torch.Tensor, tempe
 # Patching helpers (robust to signature changes)
 # -----------------------------
 
-def patch_model_with_repo_patch(model, block_size: int, num_layers: int) -> None:
+def patch_model_with_repo_patch(model, block_size: int, num_layers: int, patch_position: str = "first") -> None:
     fn = plf.patch_mlp_with_block_circulant
     sig = inspect.signature(fn)
     kwargs = {}
@@ -134,6 +134,8 @@ def patch_model_with_repo_patch(model, block_size: int, num_layers: int) -> None
         kwargs["num_layers_to_patch"] = num_layers
     if "num_layers" in sig.parameters:  # just in case
         kwargs["num_layers"] = num_layers
+    if "patch_position" in sig.parameters:
+        kwargs["patch_position"] = patch_position
     fn(model, **kwargs) if kwargs else fn(model)
 
 def maybe_load_calib(model, calib_path: Optional[str]) -> Tuple[int, int, int]:
@@ -459,6 +461,7 @@ def main():
 
     ap.add_argument("--block_sizes", type=str, default="64,128,256")
     ap.add_argument("--num_layers", type=int, default=1)
+    ap.add_argument("--patch_position", type=str, default="first", choices=["first", "last"])
 
     ap.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")
     ap.add_argument("--dtype", type=str, default="float16", choices=["float16", "float32", "bfloat16"])
@@ -525,6 +528,7 @@ def main():
         "cache_cfft": args.cache_cfft,
         "cache_for_correctness": args.cache_for_correctness,
         "no_generate": bool(args.no_generate),
+        "patch_position": args.patch_position,
     }
 
     for B in block_sizes:
@@ -539,7 +543,12 @@ def main():
         ).to(device)
         student.eval()
 
-        patch_model_with_repo_patch(student, block_size=B, num_layers=args.num_layers)
+        patch_model_with_repo_patch(
+            student,
+            block_size=B,
+            num_layers=args.num_layers,
+            patch_position=args.patch_position,
+        )
 
         # Optional: load calibrated BC params
         calib_path = None

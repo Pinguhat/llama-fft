@@ -117,6 +117,7 @@ def main():
     # run multiple block sizes in one go
     parser.add_argument("--block_sizes", type=str, default="64,128,256")
     parser.add_argument("--num_layers_to_patch", type=int, default=1)
+    parser.add_argument("--patch_position", type=str, default="first", choices=["first", "last"])
 
     parser.add_argument("--steps", type=int, default=200)
     parser.add_argument("--lr", type=float, default=1e-3)
@@ -245,6 +246,7 @@ def main():
             student,
             num_layers_to_patch=args.num_layers_to_patch,
             block_size=bsz,
+            patch_position=args.patch_position,
         )
 
         # Freeze everything, unfreeze only BC params

@@ -298,3 +298,39 @@ lm-eval `
 --limit 100
 
 
+---------------------------------------------------------
+8 letzten Layer
+---------------------------------------------------------
+
+lm-eval `
+  --model llama_fft `
+  --model_args "pretrained=C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2,dtype=float16,device=cuda,use_cache=False,block_size=64,num_layers=8,patch_position=last,cache_cfft=1" `
+  --tasks leaderboard_mmlu_pro,leaderboard_gpqa_main,leaderboard_bbh_boolean_expressions,leaderboard_bbh_date_understanding,leaderboard_bbh_object_counting `
+  --batch_size 1 `
+  --max_batch_size 1 `
+  --output_path out\fft_5tasks_L100_B64_Last_L8_nocal `
+  --limit 100
+
+
+
+lm-eval `
+--model llama_fft `
+--model_args "pretrained=C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2,dtype=float16,device=cuda,use_cache=False,block_size=128,num_layers=8,patch_position=last,cache_cfft=1" `
+--tasks leaderboard_mmlu_pro,leaderboard_gpqa_main,leaderboard_bbh_boolean_expressions,leaderboard_bbh_date_understanding,leaderboard_bbh_object_counting `
+--batch_size 1 `
+--max_batch_size 1 `
+--output_path out\fft_5tasks_L100_B128_Last_L8_nocal `
+--limit 100
+
+
+
+lm-eval `
+--model llama_fft `
+--model_args "pretrained=C:/Users/Lukas/Documents/0-UNI/Seminar/Llama2,dtype=float16,device=cuda,use_cache=False,block_size=256,num_layers=8,patch_position=last,cache_cfft=1" `
+--tasks leaderboard_mmlu_pro,leaderboard_gpqa_main,leaderboard_bbh_boolean_expressions,leaderboard_bbh_date_understanding,leaderboard_bbh_object_counting `
+--batch_size 1 `
+--max_batch_size 1 `
+--output_path out\fft_5tasks_L100_B256_Last_L8_nocal `
+--limit 100
+
+

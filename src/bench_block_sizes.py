@@ -62,7 +62,7 @@ def sync_if_cuda(device: torch.device) -> None:
         torch.cuda.synchronize()
 
 
-def patch_model_with_repo_patch(model, block_size: int, num_layers: int) -> None:
+def patch_model_with_repo_patch(model, block_size: int, num_layers: int, patch_position: str = "first") -> None:
     """
     Call patch_llama_fft.patch_mlp_with_block_circulant with a signature that may differ across versions.
     """
@@ -77,6 +77,8 @@ def patch_model_with_repo_patch(model, block_size: int, num_layers: int) -> None
         kwargs["block_size"] = block_size
     if "num_layers_to_patch" in sig.parameters:
         kwargs["num_layers_to_patch"] = num_layers
+    if "patch_position" in sig.parameters:
+        kwargs["patch_position"] = patch_position
     fn(model, **kwargs) if kwargs else fn(model)
 
 
@@ -228,6 +230,7 @@ def main():
     ap.add_argument("--limit", type=int, default=20)
     ap.add_argument("--max_len", type=int, default=64)
     ap.add_argument("--num_layers", type=int, default=1)
+    ap.add_argument("--patch_position", type=str, default="first", choices=["first", "last"])
     ap.add_argument("--block_sizes", type=str, default="64,128,256")
     ap.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")
     ap.add_argument("--dtype", type=str, default="float16", choices=["float16", "float32", "bfloat16"])
@@ -278,7 +281,12 @@ def main():
         student.eval()
 
         # Patch using repo implementation (single source of truth)
-        patch_model_with_repo_patch(student, block_size=B, num_layers=args.num_layers)
+        patch_model_with_repo_patch(
+            student,
+            block_size=B,
+            num_layers=args.num_layers,
+            patch_position=args.patch_position,
+        )
 
         calib_path = None
         if args.calib_dir:
